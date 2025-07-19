@@ -45,6 +45,21 @@ export interface Office {
   maxTerms?: number; // maximum number of consecutive terms, undefined for no limit
 }
 
+export interface QuestionType {
+  id: string;
+  name: string;
+  description: string;
+  category:
+    | 'Constitutional Amendment'
+    | 'Bond Issue'
+    | 'Tax Levy'
+    | 'Initiative'
+    | 'Referendum'
+    | 'Other';
+  requiresSupermajority: boolean; // true if requires more than simple majority
+  minimumTurnoutRequired?: number; // percentage of registered voters required to participate
+}
+
 export type ElectionStage =
   | 'Just Shopping'
   | 'Extremely Buttery Party Primary'
@@ -76,6 +91,7 @@ export interface BallotQuestion {
   id: string;
   electionId: string;
   jurisdictionId: string;
+  questionTypeId: string; // Reference to QuestionType
   shortTitle: string;
   extendedText: string;
   passed: boolean;

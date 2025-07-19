@@ -8,6 +8,7 @@ import {
   Jurisdiction,
   Office,
   Party,
+  QuestionType,
   Tenant,
   Ticket,
 } from '@/types';
@@ -271,12 +272,54 @@ export const mockContests: Record<string, Contest> = {
   },
 };
 
+// Question Type Data
+export const mockQuestionTypes: Record<string, QuestionType> = {
+  '1': {
+    id: '1',
+    name: 'Constitutional Amendment',
+    description:
+      'Amendment to the state constitution requiring supermajority approval',
+    category: 'Constitutional Amendment',
+    requiresSupermajority: true,
+    minimumTurnoutRequired: 50, // 50% voter turnout required
+  },
+  '2': {
+    id: '2',
+    name: 'Municipal Bond Issue',
+    description: 'Bond authorization for public infrastructure projects',
+    category: 'Bond Issue',
+    requiresSupermajority: false,
+  },
+  '3': {
+    id: '3',
+    name: 'Tax Levy',
+    description: 'Authorization for new or increased tax levies',
+    category: 'Tax Levy',
+    requiresSupermajority: false,
+  },
+  '4': {
+    id: '4',
+    name: 'Citizen Initiative',
+    description: 'Ballot measure initiated by citizen petition',
+    category: 'Initiative',
+    requiresSupermajority: false,
+  },
+  '5': {
+    id: '5',
+    name: 'Legislative Referendum',
+    description: 'Referendum on legislation passed by the legislature',
+    category: 'Referendum',
+    requiresSupermajority: false,
+  },
+};
+
 // Ballot Question Data
 export const mockBallotQuestions: Record<string, BallotQuestion> = {
   '1': {
     id: '1',
     electionId: '3', // Updated to match the Dogcatcher election ID
     jurisdictionId: '1',
+    questionTypeId: '1', // Constitutional Amendment
     shortTitle:
       'Decided: The State of New Crampshire shall elect its legislature via sortition among all eligible registered voters in the State of New Crampshire.',
     extendedText:
@@ -286,6 +329,34 @@ export const mockBallotQuestions: Record<string, BallotQuestion> = {
     noVotes: 1237832,
     yesPercentage: 71.2,
     noPercentage: 28.8,
+  },
+  '2': {
+    id: '2',
+    electionId: '3', // New Crampshire General Election (county-level)
+    jurisdictionId: '2', // Bullton County
+    questionTypeId: '2', // Municipal Bond Issue
+    shortTitle: 'Bullton County Infrastructure Bond - $125 Million',
+    extendedText:
+      'Shall Bullton County be authorized to issue bonds in the amount of $125 million for the purpose of rebuilding and modernizing county infrastructure including roads, bridges, water treatment facilities, and rural broadband expansion?',
+    passed: false,
+    yesVotes: 485000,
+    noVotes: 520000,
+    yesPercentage: 48.3,
+    noPercentage: 51.7,
+  },
+  '3': {
+    id: '3',
+    electionId: '2', // Federal election (Chief Sycophant)
+    jurisdictionId: '3', // Federal jurisdiction
+    questionTypeId: '4', // Citizen Initiative
+    shortTitle: 'National Ranked Choice Voting Initiative',
+    extendedText:
+      'Shall all federal elections use ranked choice voting where voters rank candidates in order of preference, and if no candidate receives a majority, the candidate with the fewest votes is eliminated and their votes redistributed until a candidate achieves a majority?',
+    passed: true,
+    yesVotes: 112000000,
+    noVotes: 88000000,
+    yesPercentage: 56.0,
+    noPercentage: 44.0,
   },
 };
 
