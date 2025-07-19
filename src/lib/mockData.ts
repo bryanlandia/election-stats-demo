@@ -97,16 +97,6 @@ export const mockOffices: Record<string, Office> = {
     termLength: 4,
     // No term limits for dogcatcher
   },
-  '4': {
-    id: '4',
-    name: 'Extremely Buttery Party Nominee',
-    description:
-      'The official nominee of the Extremely Buttery Party for federal elections.',
-    jurisdictionId: '3', // Federal jurisdiction
-    isElected: true,
-    termLength: 4,
-    maxTerms: 2,
-  },
 };
 
 // Election Data
@@ -135,7 +125,7 @@ export const mockElections: Record<string, Election> = {
     date: '2025-07-19',
     stage: 'General Election',
     jurisdictionId: '1',
-    officeId: '3', // Dogcatcher office (now ID 3)
+    officeId: '3', // Dogcatcher office
     status: 'completed',
   },
   '4': {
@@ -144,7 +134,7 @@ export const mockElections: Record<string, Election> = {
     date: '2023-08-06',
     stage: 'Extremely Buttery Party Primary',
     jurisdictionId: '3',
-    officeId: '4', // Party nominee office (now ID 4)
+    officeId: '1', // God-Emperor office
     status: 'completed',
   },
 };
