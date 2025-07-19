@@ -18,13 +18,3 @@ export async function fetchElectionResults(electionId: string) {
   }
   return response.json();
 }
-
-export async function fetchDemographics(electionId: string) {
-  const response = await fetch(
-    `${API_BASE_URL}/elections/${electionId}/demographics`
-  );
-  if (!response.ok) {
-    throw new Error('Failed to fetch demographics');
-  }
-  return response.json();
-}

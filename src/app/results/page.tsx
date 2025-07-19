@@ -1,39 +1,35 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import HorizontalBarChart from '@/components/HorizontalBarChart';
 import {
-  Container,
-  Typography,
-  Grid,
+  ApiResponse,
+  BallotQuestion,
+  Contest,
+  Contestant,
+  Election,
+  ElectionResult,
+  Party,
+  Ticket,
+} from '@/types';
+import {
+  Alert,
+  Box,
   Card,
   CardContent,
-  Box,
-  LinearProgress,
   Chip,
-  Paper,
-  List,
-  ListItem,
-  ListItemText,
-  Divider,
-  Alert,
   CircularProgress,
-  Select,
-  MenuItem,
+  Container,
   FormControl,
+  Grid,
   InputLabel,
+  LinearProgress,
+  MenuItem,
+  Paper,
+  Select,
+  Typography,
 } from '@mui/material';
-import {
-  ElectionResult,
-  Election,
-  Contest,
-  BallotQuestion,
-  Party,
-  Contestant,
-  Ticket,
-  ApiResponse,
-} from '@/types';
-import HorizontalBarChart from '@/components/HorizontalBarChart';
+import { useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
 
 interface ElectionData {
   election: Election;
@@ -80,22 +76,42 @@ function ResultsContent() {
       setError(null);
 
       try {
-        // Fetch election results, contests, and ballot questions in parallel
-        const [resultsRes, electionsRes, contestsRes, ballotQuestionsRes] =
-          await Promise.all([
-            fetch(`/api/elections/${electionId}/results`),
-            fetch('/api/elections'),
-            fetch(`/api/elections/${electionId}/contests`),
-            fetch(`/api/elections/${electionId}/ballot-questions`),
-          ]);
+        // Fetch all necessary data in parallel
+        const [
+          resultsRes,
+          electionsRes,
+          contestsRes,
+          ballotQuestionsRes,
+          partiesRes,
+          contestantsRes,
+          ticketsRes,
+        ] = await Promise.all([
+          fetch(`/api/elections/${electionId}/results`),
+          fetch('/api/elections'),
+          fetch(`/api/elections/${electionId}/contests`),
+          fetch(`/api/elections/${electionId}/ballot-questions`),
+          fetch('/api/parties'),
+          fetch('/api/contestants'),
+          fetch('/api/tickets'),
+        ]);
 
-        const [resultsData, electionsData, contestsData, ballotQuestionsData] =
-          await Promise.all([
-            resultsRes.json(),
-            electionsRes.json(),
-            contestsRes.json(),
-            ballotQuestionsRes.json(),
-          ]);
+        const [
+          resultsData,
+          electionsData,
+          contestsData,
+          ballotQuestionsData,
+          partiesData,
+          contestantsData,
+          ticketsData,
+        ] = await Promise.all([
+          resultsRes.json(),
+          electionsRes.json(),
+          contestsRes.json(),
+          ballotQuestionsRes.json(),
+          partiesRes.json(),
+          contestantsRes.json(),
+          ticketsRes.json(),
+        ]);
 
         if (!resultsData.success) {
           throw new Error(
@@ -111,77 +127,27 @@ function ResultsContent() {
           throw new Error('Election not found');
         }
 
-        // Create lookup objects for parties, contestants, and tickets from mock data
-        // In a real app, these would come from separate API endpoints
-        const parties: Record<string, Party> = {
-          '1': { id: '1', name: 'Extremely Buttery', color: '#FFDB58' },
-          '2': { id: '2', name: 'Vegan Imperium', color: '#CC8899' },
-          '3': { id: '3', name: 'Zizians', color: '#000000' },
-        };
+        // Create lookup objects from API responses
+        const parties: Record<string, Party> = {};
+        if (partiesData.success) {
+          partiesData.data.forEach((party: Party) => {
+            parties[party.id] = party;
+          });
+        }
 
-        const contestants: Record<string, Contestant> = {
-          '1': {
-            id: '1',
-            name: 'Martha Stewart',
-            partyId: '1',
-            position: 'God-Emperor',
-          },
-          '2': {
-            id: '2',
-            name: 'Emerill Lagasse',
-            partyId: '1',
-            position: 'Chief Sycophant',
-          },
-          '3': {
-            id: '3',
-            name: 'Joaquin Phoenix',
-            partyId: '2',
-            position: 'God-Emperor',
-          },
-          '4': {
-            id: '4',
-            name: 'Ariana Grande',
-            partyId: '2',
-            position: 'Chief Sycophant',
-          },
-          '5': {
-            id: '5',
-            name: 'Ziz LaSota',
-            partyId: '3',
-            position: 'God-Emperor',
-          },
-          '6': {
-            id: '6',
-            name: 'Emma Borhanian',
-            partyId: '3',
-            position: 'Chief Sycophant',
-          },
-          '7': { id: '7', name: 'Martha Stewart', partyId: '1' },
-          '8': { id: '8', name: 'Emerill Lagasse', partyId: '1' },
-          '9': { id: '9', name: 'Rachel Ray', partyId: '1' },
-          '10': { id: '10', name: 'Anthony Bourdain', partyId: '1' },
-          '11': { id: '11', name: 'Borkmeister Fuller' },
-          '12': { id: '12', name: 'Mean Lady' },
-          '13': { id: '13', name: 'Not-a-Poodle' },
-        };
+        const contestants: Record<string, Contestant> = {};
+        if (contestantsData.success) {
+          contestantsData.data.forEach((contestant: Contestant) => {
+            contestants[contestant.id] = contestant;
+          });
+        }
 
-        const tickets: Record<string, Ticket> = {
-          '1': {
-            id: '1',
-            partyId: '1',
-            contestants: [contestants['1'], contestants['2']],
-          },
-          '2': {
-            id: '2',
-            partyId: '2',
-            contestants: [contestants['3'], contestants['4']],
-          },
-          '3': {
-            id: '3',
-            partyId: '3',
-            contestants: [contestants['5'], contestants['6']],
-          },
-        };
+        const tickets: Record<string, Ticket> = {};
+        if (ticketsData.success) {
+          ticketsData.data.forEach((ticket: Ticket) => {
+            tickets[ticket.id] = ticket;
+          });
+        }
 
         setElectionData({
           election,
@@ -285,7 +251,7 @@ function ResultsContent() {
       </Box>
 
       <Grid container spacing={4}>
-        <Grid item xs={12} lg={8}>
+        <Grid item xs={12}>
           <Card>
             <CardContent>
               <Typography variant="h5" component="h2" gutterBottom>
@@ -476,80 +442,6 @@ function ResultsContent() {
                   size="small"
                 />
               </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} lg={4}>
-          <Card>
-            <CardContent>
-              <Typography variant="h5" component="h2" gutterBottom>
-                Election Information
-              </Typography>
-              <List>
-                <ListItem>
-                  <ListItemText
-                    primary="Election Date"
-                    secondary={new Date(election.date).toLocaleDateString()}
-                    slotProps={{
-                      secondary: { fontWeight: 'bold' },
-                    }}
-                  />
-                </ListItem>
-                <Divider />
-                <ListItem>
-                  <ListItemText
-                    primary="Election Stage"
-                    secondary={election.stage}
-                    slotProps={{
-                      secondary: { fontWeight: 'bold' },
-                    }}
-                  />
-                </ListItem>
-                <Divider />
-                <ListItem>
-                  <ListItemText
-                    primary="Status"
-                    secondary={
-                      election.status.charAt(0).toUpperCase() +
-                      election.status.slice(1)
-                    }
-                    slotProps={{
-                      secondary: { fontWeight: 'bold' },
-                    }}
-                  />
-                </ListItem>
-                <Divider />
-                <ListItem>
-                  <ListItemText
-                    primary="Total Votes"
-                    secondary={formatNumber(results.totalVotes)}
-                    slotProps={{
-                      secondary: { fontWeight: 'bold' },
-                    }}
-                  />
-                </ListItem>
-                <Divider />
-                <ListItem>
-                  <ListItemText
-                    primary="Reporting"
-                    secondary={`${results.reportingPercentage}%`}
-                    slotProps={{
-                      secondary: { fontWeight: 'bold' },
-                    }}
-                  />
-                </ListItem>
-                <Divider />
-                <ListItem>
-                  <ListItemText
-                    primary="Last Updated"
-                    secondary={new Date(results.lastUpdated).toLocaleString()}
-                    slotProps={{
-                      secondary: { fontWeight: 'bold' },
-                    }}
-                  />
-                </ListItem>
-              </List>
             </CardContent>
           </Card>
         </Grid>
