@@ -1,4 +1,7 @@
-import React from 'react';
+'use client';
+
+import React, { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
   Container,
   Typography,
@@ -13,114 +16,413 @@ import {
   ListItem,
   ListItemText,
   Divider,
+  Alert,
+  CircularProgress,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
 } from '@mui/material';
-import { blue, red, green } from '@mui/material/colors';
+import { 
+  ElectionResult, 
+  Election, 
+  Contest, 
+  BallotQuestion, 
+  Party, 
+  Contestant, 
+  Ticket, 
+  ApiResponse 
+} from '@/types';
 
-export default function ResultsPage() {
+interface ElectionData {
+  election: Election;
+  results: ElectionResult;
+  contests: Contest[];
+  ballotQuestions: BallotQuestion[];
+  parties: Record<string, Party>;
+  contestants: Record<string, Contestant>;
+  tickets: Record<string, Ticket>;
+}
+
+function ResultsContent() {
+  const searchParams = useSearchParams();
+  const [electionId, setElectionId] = useState<string>(searchParams.get('id') || '1');
+  const [electionData, setElectionData] = useState<ElectionData | null>(null);
+  const [elections, setElections] = useState<Election[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch available elections for the dropdown
+  useEffect(() => {
+    const fetchElections = async () => {
+      try {
+        const response = await fetch('/api/elections');
+        const data: ApiResponse<Election[]> = await response.json();
+        if (data.success) {
+          setElections(data.data);
+        }
+      } catch (err) {
+        console.error('Error fetching elections:', err);
+      }
+    };
+    fetchElections();
+  }, []);
+
+  // Fetch election data when electionId changes
+  useEffect(() => {
+    const fetchElectionData = async () => {
+      if (!electionId) return;
+      
+      setLoading(true);
+      setError(null);
+      
+      try {
+        // Fetch election results, contests, and ballot questions in parallel
+        const [resultsRes, electionsRes, contestsRes, ballotQuestionsRes] = await Promise.all([
+          fetch(`/api/elections/${electionId}/results`),
+          fetch('/api/elections'),
+          fetch(`/api/elections/${electionId}/contests`),
+          fetch(`/api/elections/${electionId}/ballot-questions`)
+        ]);
+
+        const [resultsData, electionsData, contestsData, ballotQuestionsData] = await Promise.all([
+          resultsRes.json(),
+          electionsRes.json(), 
+          contestsRes.json(),
+          ballotQuestionsRes.json()
+        ]);
+
+        if (!resultsData.success) {
+          throw new Error(resultsData.message || 'Failed to fetch election results');
+        }
+
+        // Find the specific election
+        const election = electionsData.data?.find((e: Election) => e.id === electionId);
+        if (!election) {
+          throw new Error('Election not found');
+        }
+
+        // Create lookup objects for parties, contestants, and tickets from mock data
+        // In a real app, these would come from separate API endpoints
+        const parties: Record<string, Party> = {
+          '1': { id: '1', name: 'Extremely Buttery', color: '#FFDB58' },
+          '2': { id: '2', name: 'Vegan Imperium', color: '#CC8899' },
+          '3': { id: '3', name: 'Zizians', color: '#000000' }
+        };
+
+        const contestants: Record<string, Contestant> = {
+          '1': { id: '1', name: 'Martha Stewart', partyId: '1', position: 'God-Emperor' },
+          '2': { id: '2', name: 'Emerill Lagasse', partyId: '1', position: 'Chief Sycophant' },
+          '3': { id: '3', name: 'Joaquin Phoenix', partyId: '2', position: 'God-Emperor' },
+          '4': { id: '4', name: 'Ariana Grande', partyId: '2', position: 'Chief Sycophant' },
+          '5': { id: '5', name: 'Ziz LaSota', partyId: '3', position: 'God-Emperor' },
+          '6': { id: '6', name: 'Emma Borhanian', partyId: '3', position: 'Chief Sycophant' },
+          '7': { id: '7', name: 'Martha Stewart', partyId: '1' },
+          '8': { id: '8', name: 'Emerill Lagasse', partyId: '1' },
+          '9': { id: '9', name: 'Rachel Ray', partyId: '1' },
+          '10': { id: '10', name: 'Anthony Bourdain', partyId: '1' },
+          '11': { id: '11', name: 'Borkmeister Fuller' },
+          '12': { id: '12', name: 'Mean Lady' },
+          '13': { id: '13', name: 'Not-a-Poodle' }
+        };
+
+        const tickets: Record<string, Ticket> = {
+          '1': { id: '1', partyId: '1', contestants: [contestants['1'], contestants['2']] },
+          '2': { id: '2', partyId: '2', contestants: [contestants['3'], contestants['4']] },
+          '3': { id: '3', partyId: '3', contestants: [contestants['5'], contestants['6']] }
+        };
+
+        setElectionData({
+          election,
+          results: resultsData.data,
+          contests: contestsData.success ? contestsData.data : [],
+          ballotQuestions: ballotQuestionsData.success ? ballotQuestionsData.data : [],
+          parties,
+          contestants,
+          tickets
+        });
+
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchElectionData();
+  }, [electionId]);
+
+  const formatNumber = (num: number) => {
+    return new Intl.NumberFormat().format(num);
+  };
+
+  const getColorForResult = (index: number, party?: Party) => {
+    if (party?.color) {
+      return party.color;
+    }
+    // Default colors for non-partisan contests
+    const defaultColors = ['#1976d2', '#d32f2f', '#388e3c', '#f57c00', '#7b1fa2'];
+    return defaultColors[index % defaultColors.length];
+  };
+
+  if (loading) {
+    return (
+      <Container maxWidth="lg" sx={{ py: 4, display: 'flex', justifyContent: 'center' }}>
+        <CircularProgress />
+      </Container>
+    );
+  }
+
+  if (error) {
+    return (
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Alert severity="error">{error}</Alert>
+      </Container>
+    );
+  }
+
+  if (!electionData) {
+    return (
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Alert severity="info">No election data available</Alert>
+      </Container>
+    );
+  }
+
+  const { election, results, contests, ballotQuestions, parties, contestants, tickets } = electionData;
+
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Typography variant="h3" component="h1" gutterBottom>
-        Election Results
-      </Typography>
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h3" component="h1" gutterBottom>
+          Election Results
+        </Typography>
+        
+        <FormControl sx={{ minWidth: 200, mb: 2 }}>
+          <InputLabel id="election-select-label">Select Election</InputLabel>
+          <Select
+            labelId="election-select-label"
+            value={electionId}
+            label="Select Election"
+            onChange={(e) => setElectionId(e.target.value)}
+          >
+            {elections.map((election) => (
+              <MenuItem key={election.id} value={election.id}>
+                {election.name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Box>
+
       <Grid container spacing={4}>
         <Grid item xs={12} lg={8}>
           <Card>
             <CardContent>
               <Typography variant="h5" component="h2" gutterBottom>
-                Presidential Election 2024
+                {election.name}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                {new Date(election.date).toLocaleDateString()} • {election.stage}
               </Typography>
               
-              <Box sx={{ mb: 3 }}>
-                <Paper 
-                  sx={{ 
-                    p: 2, 
-                    mb: 2, 
-                    backgroundColor: blue[50],
-                    border: `1px solid ${blue[200]}`
-                  }}
-                >
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Box>
-                      <Typography variant="h6" color={blue[800]}>
-                        Candidate A (Democratic)
-                      </Typography>
+              {/* Contest Results */}
+              {results.contestResults.map((contestResult, contestIndex) => {
+                const contest = contests.find(c => c.id === contestResult.contestId);
+                if (!contest) return null;
+
+                return (
+                  <Box key={contestResult.contestId} sx={{ mb: 4 }}>
+                    <Typography variant="h6" gutterBottom>
+                      {contest.name}
+                    </Typography>
+                    
+                    <Box sx={{ mb: 3 }}>
+                      {contestResult.results.map((result, index) => {
+                        let displayName = '';
+                        let party: Party | undefined;
+                        
+                        if (result.ticketId && tickets[result.ticketId]) {
+                          const ticket = tickets[result.ticketId];
+                          displayName = ticket.contestants.map(c => c.name).join(' & ');
+                          party = ticket.partyId ? parties[ticket.partyId] : undefined;
+                        } else if (result.contestantId && contestants[result.contestantId]) {
+                          const contestant = contestants[result.contestantId];
+                          displayName = contestant.name;
+                          party = contestant.partyId ? parties[contestant.partyId] : undefined;
+                        }
+
+                        const color = getColorForResult(index, party);
+                        const isWinner = result.winner;
+
+                        return (
+                          <Paper 
+                            key={result.ticketId || result.contestantId}
+                            sx={{ 
+                              p: 2, 
+                              mb: 2, 
+                              backgroundColor: isWinner ? `${color}15` : 'background.paper',
+                              border: `1px solid ${color}40`,
+                              ...(isWinner && { boxShadow: 2 })
+                            }}
+                          >
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <Box>
+                                <Typography 
+                                  variant="h6" 
+                                  sx={{ 
+                                    color: color,
+                                    fontWeight: isWinner ? 'bold' : 'normal'
+                                  }}
+                                >
+                                  {displayName}
+                                  {party && ` (${party.name})`}
+                                  {isWinner && ' 🏆'}
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                  {formatNumber(result.votes)} votes
+                                </Typography>
+                                {result.disqualified && (
+                                  <Typography variant="caption" color="error">
+                                    Disqualified: {result.disqualificationReason}
+                                  </Typography>
+                                )}
+                              </Box>
+                              <Typography 
+                                variant="h4" 
+                                sx={{ 
+                                  color: color,
+                                  fontWeight: isWinner ? 'bold' : 'normal'
+                                }}
+                              >
+                                {result.percentage}%
+                              </Typography>
+                            </Box>
+                            <LinearProgress 
+                              variant="determinate" 
+                              value={result.percentage} 
+                              sx={{ 
+                                mt: 1, 
+                                height: 8, 
+                                borderRadius: 4,
+                                backgroundColor: `${color}20`,
+                                '& .MuiLinearProgress-bar': {
+                                  backgroundColor: color
+                                }
+                              }}
+                            />
+                          </Paper>
+                        );
+                      })}
+                    </Box>
+                    
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                       <Typography variant="body2" color="text.secondary">
-                        81,000,000 votes
+                        Total votes: {formatNumber(contestResult.totalVotes)}
                       </Typography>
                     </Box>
-                    <Typography variant="h4" color={blue[600]} fontWeight="bold">
-                      51.3%
-                    </Typography>
                   </Box>
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={51.3} 
-                    sx={{ mt: 1, height: 8, borderRadius: 4 }}
-                  />
-                </Paper>
-                
-                <Paper 
-                  sx={{ 
-                    p: 2, 
-                    mb: 2, 
-                    backgroundColor: red[50],
-                    border: `1px solid ${red[200]}`
-                  }}
-                >
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Box>
-                      <Typography variant="h6" color={red[800]}>
-                        Candidate B (Republican)
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        74,000,000 votes
-                      </Typography>
+                );
+              })}
+
+              {/* Ballot Question Results */}
+              {results.ballotQuestionResults?.map((ballotResult) => {
+                const ballotQuestion = ballotQuestions.find(bq => bq.id === ballotResult.ballotQuestionId);
+                if (!ballotQuestion) return null;
+
+                return (
+                  <Box key={ballotResult.ballotQuestionId} sx={{ mb: 4 }}>
+                    <Typography variant="h6" gutterBottom>
+                      Ballot Question: {ballotQuestion.shortTitle}
+                    </Typography>
+                    
+                    <Box sx={{ mb: 3 }}>
+                      <Paper 
+                        sx={{ 
+                          p: 2, 
+                          mb: 2, 
+                          backgroundColor: ballotResult.passed ? '#4caf5015' : '#f4433615',
+                          border: ballotResult.passed ? '1px solid #4caf5040' : '1px solid #f4433640'
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <Box>
+                            <Typography variant="h6" color={ballotResult.passed ? 'success.main' : 'error.main'}>
+                              Yes {ballotResult.passed ? '✓' : ''}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              {formatNumber(ballotResult.yesVotes)} votes
+                            </Typography>
+                          </Box>
+                          <Typography variant="h4" color={ballotResult.passed ? 'success.main' : 'text.primary'}>
+                            {ballotResult.yesPercentage}%
+                          </Typography>
+                        </Box>
+                        <LinearProgress 
+                          variant="determinate" 
+                          value={ballotResult.yesPercentage} 
+                          sx={{ 
+                            mt: 1, 
+                            height: 8, 
+                            borderRadius: 4,
+                            '& .MuiLinearProgress-bar': {
+                              backgroundColor: '#4caf50'
+                            }
+                          }}
+                        />
+                      </Paper>
+
+                      <Paper 
+                        sx={{ 
+                          p: 2, 
+                          backgroundColor: !ballotResult.passed ? '#f4433615' : 'background.paper',
+                          border: '1px solid #f4433640'
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <Box>
+                            <Typography variant="h6" color="error.main">
+                              No {!ballotResult.passed ? '✓' : ''}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              {formatNumber(ballotResult.noVotes)} votes
+                            </Typography>
+                          </Box>
+                          <Typography variant="h4" color={!ballotResult.passed ? 'error.main' : 'text.primary'}>
+                            {ballotResult.noPercentage}%
+                          </Typography>
+                        </Box>
+                        <LinearProgress 
+                          variant="determinate" 
+                          value={ballotResult.noPercentage} 
+                          sx={{ 
+                            mt: 1, 
+                            height: 8, 
+                            borderRadius: 4,
+                            '& .MuiLinearProgress-bar': {
+                              backgroundColor: '#f44336'
+                            }
+                          }}
+                        />
+                      </Paper>
                     </Box>
-                    <Typography variant="h4" color={red[600]} fontWeight="bold">
-                      46.8%
+                    
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                      Result: <strong>{ballotResult.passed ? 'PASSED' : 'FAILED'}</strong>
                     </Typography>
                   </Box>
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={46.8} 
-                    sx={{ mt: 1, height: 8, borderRadius: 4 }}
-                    color="secondary"
-                  />
-                </Paper>
-                
-                <Paper 
-                  sx={{ 
-                    p: 2, 
-                    backgroundColor: green[50],
-                    border: `1px solid ${green[200]}`
-                  }}
-                >
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Box>
-                      <Typography variant="h6" color={green[800]}>
-                        Other Candidates
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        3,000,000 votes
-                      </Typography>
-                    </Box>
-                    <Typography variant="h4" color={green[600]} fontWeight="bold">
-                      1.9%
-                    </Typography>
-                  </Box>
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={1.9} 
-                    sx={{ mt: 1, height: 8, borderRadius: 4, color: green[500] }}
-                  />
-                </Paper>
-              </Box>
+                );
+              })}
               
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="body2" color="text.secondary">
-                  Total votes: 158,000,000
+                  Total votes: {formatNumber(results.totalVotes)}
                 </Typography>
-                <Chip label="100% Reporting" color="success" size="small" />
+                <Chip 
+                  label={`${results.reportingPercentage}% Reporting`} 
+                  color={results.reportingPercentage === 100 ? "success" : "warning"} 
+                  size="small" 
+                />
               </Box>
             </CardContent>
           </Card>
@@ -130,13 +432,13 @@ export default function ResultsPage() {
           <Card>
             <CardContent>
               <Typography variant="h5" component="h2" gutterBottom>
-                Key Statistics
+                Election Information
               </Typography>
               <List>
                 <ListItem>
                   <ListItemText 
-                    primary="Voter Turnout" 
-                    secondary="66.2%" 
+                    primary="Election Date" 
+                    secondary={new Date(election.date).toLocaleDateString()}
                     slotProps={{
                       secondary: { fontWeight: 'bold' }
                     }}
@@ -145,8 +447,8 @@ export default function ResultsPage() {
                 <Divider />
                 <ListItem>
                   <ListItemText 
-                    primary="Eligible Voters" 
-                    secondary="238,000,000" 
+                    primary="Election Stage" 
+                    secondary={election.stage}
                     slotProps={{
                       secondary: { fontWeight: 'bold' }
                     }}
@@ -155,8 +457,8 @@ export default function ResultsPage() {
                 <Divider />
                 <ListItem>
                   <ListItemText 
-                    primary="States Called" 
-                    secondary="50/50" 
+                    primary="Status" 
+                    secondary={election.status.charAt(0).toUpperCase() + election.status.slice(1)}
                     slotProps={{
                       secondary: { fontWeight: 'bold' }
                     }}
@@ -165,8 +467,28 @@ export default function ResultsPage() {
                 <Divider />
                 <ListItem>
                   <ListItemText 
-                    primary="Electoral Votes" 
-                    secondary="312 - 226" 
+                    primary="Total Votes" 
+                    secondary={formatNumber(results.totalVotes)}
+                    slotProps={{
+                      secondary: { fontWeight: 'bold' }
+                    }}
+                  />
+                </ListItem>
+                <Divider />
+                <ListItem>
+                  <ListItemText 
+                    primary="Reporting" 
+                    secondary={`${results.reportingPercentage}%`}
+                    slotProps={{
+                      secondary: { fontWeight: 'bold' }
+                    }}
+                  />
+                </ListItem>
+                <Divider />
+                <ListItem>
+                  <ListItemText 
+                    primary="Last Updated" 
+                    secondary={new Date(results.lastUpdated).toLocaleString()}
                     slotProps={{
                       secondary: { fontWeight: 'bold' }
                     }}
@@ -178,5 +500,17 @@ export default function ResultsPage() {
         </Grid>
       </Grid>
     </Container>
+  );
+}
+
+export default function ResultsPage() {
+  return (
+    <Suspense fallback={
+      <Container maxWidth="lg" sx={{ py: 4, display: 'flex', justifyContent: 'center' }}>
+        <CircularProgress />
+      </Container>
+    }>
+      <ResultsContent />
+    </Suspense>
   );
 }
