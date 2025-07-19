@@ -1,7 +1,18 @@
-import {
+import React from 'react';
+import { 
+  Container, 
+  Typography, 
+  Grid, 
+  Card, 
+  CardContent, 
+  CardActions, 
+  Button,
+  Box 
+} from '@mui/material';
+import { 
   BarChart as BarChartIcon,
   People as PeopleIcon,
-  Timeline as TimelineIcon
+  Timeline as TimelineIcon 
 } from '@mui/icons-material';
 import {
   Box,
@@ -33,11 +44,12 @@ export default function HomePage() {
             maxWidth: 600,
             mx: 'auto'
           }}>
-          Election stats
+          Comprehensive election statistics and data visualization platform. 
+          Track voting trends, analyze demographics, and explore democratic participation.
         </Typography>
       </Box>
-      <Grid container spacing={4}>
-        <Grid item xs={12} md={4}>
+      <Grid container spacing={4} justifyContent="center">
+        <Grid item xs={12} md={6} lg={4}>
           <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             <CardContent sx={{ flexGrow: 1 }}>
               <Box
@@ -65,72 +77,6 @@ export default function HomePage() {
                 fullWidth
               >
                 View Results
-              </Button>
-            </CardActions>
-          </Card>
-        </Grid>
-        
-        <Grid item xs={12} md={4}>
-          <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <CardContent sx={{ flexGrow: 1 }}>
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  mb: 2
-                }}>
-                <PeopleIcon color="primary" sx={{ mr: 1 }} />
-                <Typography variant="h5" component="h2">
-                  Demographics
-                </Typography>
-              </Box>
-              <Typography sx={{
-                color: "text.secondary"
-              }}>
-                Analyze voting patterns across different demographic groups.
-              </Typography>
-            </CardContent>
-            <CardActions>
-              <Button 
-                component={Link} 
-                href="/demographics" 
-                variant="contained" 
-                fullWidth
-              >
-                Explore Data
-              </Button>
-            </CardActions>
-          </Card>
-        </Grid>
-        
-        <Grid item xs={12} md={4}>
-          <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <CardContent sx={{ flexGrow: 1 }}>
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  mb: 2
-                }}>
-                <TimelineIcon color="primary" sx={{ mr: 1 }} />
-                <Typography variant="h5" component="h2">
-                  Historical Trends
-                </Typography>
-              </Box>
-              <Typography sx={{
-                color: "text.secondary"
-              }}>
-                Compare current elections with historical voting data.
-              </Typography>
-            </CardContent>
-            <CardActions>
-              <Button 
-                component={Link} 
-                href="/trends" 
-                variant="contained" 
-                fullWidth
-              >
-                View Trends
               </Button>
             </CardActions>
           </Card>

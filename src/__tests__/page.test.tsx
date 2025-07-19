@@ -27,14 +27,10 @@ describe('HomePage', () => {
   it('renders navigation cards', () => {
     renderWithTheme(<HomePage />)
     expect(screen.getByText(/live results/i)).toBeInTheDocument()
-    expect(screen.getByText(/demographics/i)).toBeInTheDocument()
-    expect(screen.getByText(/historical trends/i)).toBeInTheDocument()
   })
 
   it('renders action buttons', () => {
     renderWithTheme(<HomePage />)
-    expect(screen.getByRole('button', { name: /view results/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /explore data/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /view trends/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /view results/i })).toBeInTheDocument()
   })
 })

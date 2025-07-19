@@ -50,20 +50,6 @@ export default function Header({ title = 'Election Stats' }: HeaderProps) {
             >
               Results
             </Button>
-            <Button
-              component={Link}
-              href="/demographics"
-              sx={{ color: 'white', display: 'block' }}
-            >
-              Demographics
-            </Button>
-            <Button
-              component={Link}
-              href="/trends"
-              sx={{ color: 'white', display: 'block' }}
-            >
-              Trends
-            </Button>
           </Box>
         </Toolbar>
       </Container>
