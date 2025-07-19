@@ -1,14 +1,14 @@
 import {
-  Tenant,
+  BallotQuestion,
+  Contest,
+  Contestant,
+  ContestResult,
+  Election,
+  ElectionResult,
   Jurisdiction,
   Party,
-  Election,
-  Contest,
-  BallotQuestion,
-  Contestant,
+  Tenant,
   Ticket,
-  ElectionResult,
-  ContestResult,
 } from '@/types';
 
 // Tenant Data
@@ -69,7 +69,7 @@ export const mockElections: Record<string, Election> = {
     id: '1',
     name: 'Federal General Election 2024',
     date: '2024-11-05', // First Tuesday of November 2024
-    stage: 'General',
+    stage: 'General Election',
     jurisdictionId: '3',
     status: 'completed',
   },
@@ -77,14 +77,14 @@ export const mockElections: Record<string, Election> = {
     id: '2',
     name: 'New Crampshire General Election 2025',
     date: '2025-07-19',
-    stage: 'General',
+    stage: 'General Election',
     jurisdictionId: '1',
     status: 'completed',
   },
   '3': {
     id: '3',
-    name: 'Extremely Buttery Party Primary 2024',
-    date: '2024-08-06', // 3 months before election 2 (closest Tuesday)
+    name: 'Extremely Buttery Party Primary 2023',
+    date: '2023-08-06',
     stage: 'Extremely Buttery Party Primary',
     jurisdictionId: '3',
     status: 'completed',

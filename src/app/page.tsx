@@ -244,13 +244,20 @@ export default function HomePage() {
                   value={yearRange}
                   onChange={handleYearRangeChange}
                   valueLabelDisplay="on"
-                  min={2024}
-                  max={2025}
+                  min={Math.min(
+                    ...elections.map((e) => new Date(e.date).getFullYear())
+                  )}
+                  max={Math.max(
+                    ...elections.map((e) => new Date(e.date).getFullYear())
+                  )}
                   step={1}
-                  marks={[
-                    { value: 2024, label: '2024' },
-                    { value: 2025, label: '2025' },
-                  ]}
+                  marks={Array.from(
+                    new Set(
+                      elections.map((e) => new Date(e.date).getFullYear())
+                    )
+                  )
+                    .sort((a, b) => a - b)
+                    .map((year) => ({ value: year, label: year.toString() }))}
                   sx={{ mt: 2 }}
                 />
               </Box>
@@ -261,18 +268,7 @@ export default function HomePage() {
                   gap: 2,
                   mt: 2,
                 }}
-              >
-                <Chip
-                  label={`${yearRange[0]}`}
-                  variant="outlined"
-                  size="small"
-                />
-                <Chip
-                  label={`${yearRange[1]}`}
-                  variant="outlined"
-                  size="small"
-                />
-              </Box>
+              ></Box>
             </Box>
           )}
 
@@ -342,73 +338,83 @@ export default function HomePage() {
           </Typography>
 
           <Grid container spacing={3}>
-            {filteredElections.map((election) => (
-              <Grid item xs={12} sm={6} md={4} key={election.id}>
-                <Card
-                  sx={{
-                    height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    transition: 'transform 0.2s, box-shadow 0.2s',
-                    '&:hover': {
-                      transform: 'translateY(-4px)',
-                      boxShadow: 3,
-                    },
-                  }}
-                >
-                  <CardContent sx={{ flexGrow: 1 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                      <EventIcon sx={{ mr: 1, color: 'primary.main' }} />
-                      <Chip
-                        label={`${getStatusIcon(election.status)} ${election.status}`}
-                        color={getStatusColor(election.status) as any}
-                        size="small"
-                      />
-                    </Box>
+            {[...filteredElections]
+              .sort(
+                (a, b) =>
+                  new Date(b.date).getTime() - new Date(a.date).getTime()
+              )
+              .map((election) => (
+                <Grid item xs={12} sm={6} md={4} key={election.id}>
+                  <Card
+                    sx={{
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      transition: 'transform 0.2s, box-shadow 0.2s',
+                      '&:hover': {
+                        transform: 'translateY(-4px)',
+                        boxShadow: 3,
+                      },
+                    }}
+                  >
+                    <CardContent sx={{ flexGrow: 1 }}>
+                      <Box
+                        sx={{ display: 'flex', alignItems: 'center', mb: 2 }}
+                      >
+                        <EventIcon sx={{ mr: 1, color: 'primary.main' }} />
+                        <Chip
+                          label={`${getStatusIcon(election.status)} ${election.status}`}
+                          color={getStatusColor(election.status) as any}
+                          size="small"
+                        />
+                      </Box>
 
-                    <Typography variant="h6" component="h3" gutterBottom>
-                      {election.name}
-                    </Typography>
-
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      gutterBottom
-                    >
-                      <strong>Date:</strong> {formatElectionDate(election.date)}
-                    </Typography>
-
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      gutterBottom
-                    >
-                      <strong>Stage:</strong> {election.stage}
-                    </Typography>
-
-                    <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
-                      <VoteIcon sx={{ mr: 1, fontSize: 16 }} />
-                      <Typography variant="body2" color="text.secondary">
-                        {getContestCount(election.id)} contests
+                      <Typography variant="h6" component="h3" gutterBottom>
+                        {election.name}
                       </Typography>
-                    </Box>
-                  </CardContent>
 
-                  <CardActions>
-                    <Button
-                      component={Link}
-                      href={`/results?election=${election.id}`}
-                      size="small"
-                      startIcon={<BarChartIcon />}
-                      fullWidth
-                      variant="contained"
-                    >
-                      View Results
-                    </Button>
-                  </CardActions>
-                </Card>
-              </Grid>
-            ))}
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        gutterBottom
+                      >
+                        <strong>Date:</strong>{' '}
+                        {formatElectionDate(election.date)}
+                      </Typography>
+
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        gutterBottom
+                      >
+                        <strong>Stage:</strong> {election.stage}
+                      </Typography>
+
+                      <Box
+                        sx={{ display: 'flex', alignItems: 'center', mt: 2 }}
+                      >
+                        <VoteIcon sx={{ mr: 1, fontSize: 16 }} />
+                        <Typography variant="body2" color="text.secondary">
+                          {getContestCount(election.id)} contests
+                        </Typography>
+                      </Box>
+                    </CardContent>
+
+                    <CardActions>
+                      <Button
+                        component={Link}
+                        href={`/results?election=${election.id}`}
+                        size="small"
+                        startIcon={<BarChartIcon />}
+                        fullWidth
+                        variant="contained"
+                      >
+                        View Results
+                      </Button>
+                    </CardActions>
+                  </Card>
+                </Grid>
+              ))}
           </Grid>
 
           {filteredElections.length === 0 && (
