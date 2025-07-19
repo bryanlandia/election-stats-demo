@@ -39,7 +39,7 @@ export type ElectionStage =
   | 'Just Shopping'
   | 'Extremely Buttery Party Primary'
   | 'Vegan Imperium Party Primary'
-  | 'General';
+  | 'General Election';
 
 export interface Election {
   id: string;
