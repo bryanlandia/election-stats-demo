@@ -117,9 +117,7 @@ describe('HomePage', () => {
     expect(
       screen.getByRole('tab', { name: /election dates/i })
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole('tab', { name: /contests/i })
-    ).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /contests/i })).toBeInTheDocument();
     expect(
       screen.getByRole('tab', { name: /ballot questions/i })
     ).toBeInTheDocument();
@@ -195,8 +193,18 @@ describe('HomePage', () => {
         isPartisan: true,
         isTicketBased: false,
         candidates: [
-          { id: '1', name: 'Martha Stewart', partyId: '1', position: 'God-Emperor' },
-          { id: '3', name: 'Joaquin Phoenix', partyId: '2', position: 'God-Emperor' },
+          {
+            id: '1',
+            name: 'Martha Stewart',
+            partyId: '1',
+            position: 'God-Emperor',
+          },
+          {
+            id: '3',
+            name: 'Joaquin Phoenix',
+            partyId: '2',
+            position: 'God-Emperor',
+          },
         ],
       },
     ];

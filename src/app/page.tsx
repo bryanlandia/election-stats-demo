@@ -8,10 +8,10 @@ import {
   Election,
   Jurisdiction,
   Office,
+  QuestionType,
 } from '@/types';
 import {
   BarChart as BarChartIcon,
-  Event as EventIcon,
   FilterList as FilterListIcon,
   Search as SearchIcon,
   HowToVote as VoteIcon,
@@ -52,8 +52,11 @@ export default function HomePage() {
   const [offices, setOffices] = useState<Office[]>([]);
   const [jurisdictions, setJurisdictions] = useState<Jurisdiction[]>([]);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
-  const [filteredElections, setFilteredElections] = useState<Election[]>([]);
+  const [questionTypes, setQuestionTypes] = useState<QuestionType[]>([]);
   const [filteredContests, setFilteredContests] = useState<Contest[]>([]);
+  const [filteredBallotQuestions, setFilteredBallotQuestions] = useState<
+    BallotQuestion[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedTab, setSelectedTab] = useState(0);
@@ -65,6 +68,12 @@ export default function HomePage() {
   const [selectedOffice, setSelectedOffice] = useState<string>('');
   const [candidateSearch, setCandidateSearch] = useState<string>('');
 
+  // Ballot question search filters
+  const [ballotQuestionSearchEnabled, setBallotQuestionSearchEnabled] =
+    useState(false);
+  const [selectedJurisdiction, setSelectedJurisdiction] = useState<string>('');
+  const [selectedQuestionType, setSelectedQuestionType] = useState<string>('');
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -75,6 +84,7 @@ export default function HomePage() {
           officesResponse,
           jurisdictionsResponse,
           candidatesResponse,
+          questionTypesResponse,
         ] = await Promise.all([
           fetch('/api/elections'),
           fetch('/api/elections/all/contests'),
@@ -82,6 +92,7 @@ export default function HomePage() {
           fetch('/api/offices'),
           fetch('/api/jurisdictions'),
           fetch('/api/candidates'),
+          fetch('/api/question-types'),
         ]);
 
         const electionsData: ApiResponse<Election[]> =
@@ -126,15 +137,25 @@ export default function HomePage() {
           candidatesData = await candidatesResponse.json();
         }
 
+        // Handle question types response
+        let questionTypesData: ApiResponse<QuestionType[]> = {
+          success: true,
+          data: [],
+        };
+        if (questionTypesResponse.ok) {
+          questionTypesData = await questionTypesResponse.json();
+        }
+
         if (electionsData.success) {
           setElections(electionsData.data);
-          setFilteredElections(electionsData.data);
           setContests(contestsData.data || []);
           setFilteredContests(contestsData.data || []);
           setBallotQuestions(ballotQuestionsData.data || []);
+          setFilteredBallotQuestions(ballotQuestionsData.data || []);
           setOffices(officesData.data || []);
           setJurisdictions(jurisdictionsData.data || []);
           setCandidates(candidatesData.data || []);
+          setQuestionTypes(questionTypesData.data || []);
 
           // Set year range based on available elections
           const years = electionsData.data.map((e) =>
@@ -156,36 +177,55 @@ export default function HomePage() {
     fetchData();
   }, []);
 
-  // Filter elections when tab or filters change
+  // Filter contests and ballot questions when tab or filters change
   useEffect(() => {
-    let filtered = elections;
+    let filteredContests = contests;
+    let filteredQuestions = ballotQuestions;
 
     if (selectedTab === 0) {
-      // Year range filter
-      filtered = elections.filter((election) => {
+      // Year range filter - filter by election dates
+      const electionsInRange = elections.filter((election) => {
         const year = new Date(election.date).getFullYear();
         return year >= yearRange[0] && year <= yearRange[1];
       });
+      const electionIds = electionsInRange.map((e) => e.id);
+
+      filteredContests = contests.filter((contest) =>
+        electionIds.includes(contest.electionId)
+      );
+      filteredQuestions = ballotQuestions.filter((question) =>
+        electionIds.includes(question.electionId)
+      );
     } else if (selectedTab === 1) {
       // Election dates filter
       if (selectedElection !== 'all') {
-        filtered = elections.filter(
-          (election) => election.id === selectedElection
+        filteredContests = contests.filter(
+          (contest) => contest.electionId === selectedElection
+        );
+        filteredQuestions = ballotQuestions.filter(
+          (question) => question.electionId === selectedElection
         );
       }
     }
 
-    setFilteredElections(filtered);
-  }, [selectedTab, yearRange, selectedElection, elections]);
+    setFilteredContests(filteredContests);
+    setFilteredBallotQuestions(filteredQuestions);
+  }, [
+    selectedTab,
+    yearRange,
+    selectedElection,
+    elections,
+    contests,
+    ballotQuestions,
+  ]);
 
-  // Filter contests when contest search filters change
+  // Apply contest search filters in addition to main filters
   useEffect(() => {
     if (!contestSearchEnabled) {
-      setFilteredContests(contests);
-      return;
+      return; // Use the main filtering results
     }
 
-    let filtered = contests;
+    let filtered = filteredContests; // Start with already filtered contests
 
     // Filter by selected office
     if (selectedOffice) {
@@ -227,9 +267,39 @@ export default function HomePage() {
     contestSearchEnabled,
     selectedOffice,
     candidateSearch,
-    contests,
+    filteredContests,
     offices,
     elections,
+  ]);
+
+  // Apply ballot question search filters in addition to main filters
+  useEffect(() => {
+    if (!ballotQuestionSearchEnabled) {
+      return; // Use the main filtering results
+    }
+
+    let filtered = filteredBallotQuestions; // Start with already filtered questions
+
+    // Filter by selected jurisdiction
+    if (selectedJurisdiction) {
+      filtered = filtered.filter(
+        (question) => question.jurisdictionId === selectedJurisdiction
+      );
+    }
+
+    // Filter by selected question type
+    if (selectedQuestionType) {
+      filtered = filtered.filter(
+        (question) => question.questionTypeId === selectedQuestionType
+      );
+    }
+
+    setFilteredBallotQuestions(filtered);
+  }, [
+    ballotQuestionSearchEnabled,
+    selectedJurisdiction,
+    selectedQuestionType,
+    filteredBallotQuestions,
   ]);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -262,6 +332,24 @@ export default function HomePage() {
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     setCandidateSearch(event.target.value);
+  };
+
+  const handleBallotQuestionSearchToggle = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setBallotQuestionSearchEnabled(event.target.checked);
+    if (!event.target.checked) {
+      setSelectedJurisdiction('');
+      setSelectedQuestionType('');
+    }
+  };
+
+  const handleJurisdictionChange = (event: any) => {
+    setSelectedJurisdiction(event.target.value);
+  };
+
+  const handleQuestionTypeChange = (event: any) => {
+    setSelectedQuestionType(event.target.value);
   };
 
   const getContestCount = (electionId: string) => {
@@ -390,6 +478,7 @@ export default function HomePage() {
           <Tab label="YEAR RANGE" />
           <Tab label="ELECTION DATES" />
           <Tab label="CONTESTS" />
+          <Tab label="BALLOT QUESTIONS" />
         </Tabs>
 
         <Box sx={{ minHeight: 120 }}>
@@ -554,6 +643,92 @@ export default function HomePage() {
               )}
             </Box>
           )}
+
+          {selectedTab === 3 && (
+            <Box sx={{ px: 2 }}>
+              <Box sx={{ mb: 3 }}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={ballotQuestionSearchEnabled}
+                      onChange={handleBallotQuestionSearchToggle}
+                      color="primary"
+                    />
+                  }
+                  label={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <FilterListIcon />
+                      Search for Ballot Questions
+                    </Box>
+                  }
+                />
+              </Box>
+
+              {ballotQuestionSearchEnabled && (
+                <Grid container spacing={3}>
+                  <Grid item xs={12} md={6}>
+                    <FormControl fullWidth>
+                      <InputLabel>Filter by Jurisdiction</InputLabel>
+                      <Select
+                        value={selectedJurisdiction}
+                        onChange={handleJurisdictionChange}
+                        input={<OutlinedInput label="Filter by Jurisdiction" />}
+                      >
+                        <MenuItem value="">All Jurisdictions</MenuItem>
+                        {jurisdictions.map((jurisdiction) => (
+                          <MenuItem
+                            key={jurisdiction.id}
+                            value={jurisdiction.id}
+                          >
+                            {jurisdiction.name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+
+                  <Grid item xs={12} md={6}>
+                    <FormControl fullWidth>
+                      <InputLabel>Filter by Question Type</InputLabel>
+                      <Select
+                        value={selectedQuestionType}
+                        onChange={handleQuestionTypeChange}
+                        input={
+                          <OutlinedInput label="Filter by Question Type" />
+                        }
+                      >
+                        <MenuItem value="">All Question Types</MenuItem>
+                        {questionTypes.map((questionType) => (
+                          <MenuItem
+                            key={questionType.id}
+                            value={questionType.id}
+                          >
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'flex-start',
+                              }}
+                            >
+                              <Typography variant="body1">
+                                {questionType.name}
+                              </Typography>
+                              <Typography
+                                variant="caption"
+                                sx={{ color: 'text.secondary' }}
+                              >
+                                {questionType.description}
+                              </Typography>
+                            </Box>
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                </Grid>
+              )}
+            </Box>
+          )}
         </Box>
       </Paper>
 
@@ -572,116 +747,8 @@ export default function HomePage() {
       {/* Results Grid */}
       {!loading && !error && (
         <>
-          {selectedTab !== 2 && (
-            <>
-              <Typography
-                variant="h5"
-                component="h2"
-                gutterBottom
-                sx={{ mb: 3 }}
-              >
-                Elections ({filteredElections.length})
-              </Typography>
-
-              <Grid container spacing={3}>
-                {[...filteredElections]
-                  .sort(
-                    (a, b) =>
-                      new Date(b.date).getTime() - new Date(a.date).getTime()
-                  )
-                  .map((election) => (
-                    <Grid item xs={12} sm={6} md={4} key={election.id}>
-                      <Card
-                        sx={{
-                          height: '100%',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          transition: 'transform 0.2s, box-shadow 0.2s',
-                          '&:hover': {
-                            transform: 'translateY(-4px)',
-                            boxShadow: 3,
-                          },
-                        }}
-                      >
-                        <CardContent sx={{ flexGrow: 1 }}>
-                          <Box
-                            sx={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              mb: 2,
-                            }}
-                          >
-                            <EventIcon sx={{ mr: 1, color: 'primary.main' }} />
-                            <Chip
-                              label={`${getStatusIcon(election.status)} ${election.status}`}
-                              color={getStatusColor(election.status) as any}
-                              size="small"
-                            />
-                          </Box>
-
-                          <Typography variant="h6" component="h3" gutterBottom>
-                            {election.name}
-                          </Typography>
-
-                          <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            gutterBottom
-                          >
-                            <strong>Date:</strong>{' '}
-                            {formatElectionDate(election.date)}
-                          </Typography>
-
-                          <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            gutterBottom
-                          >
-                            <strong>Stage:</strong> {election.stage}
-                          </Typography>
-
-                          <Box
-                            sx={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              mt: 2,
-                            }}
-                          >
-                            <VoteIcon sx={{ mr: 1, fontSize: 16 }} />
-                            <Typography variant="body2" color="text.secondary">
-                              {getContestCount(election.id)} contests
-                            </Typography>
-                          </Box>
-                        </CardContent>
-
-                        <CardActions>
-                          <Button
-                            component={Link}
-                            href={`/results?election=${election.id}`}
-                            size="small"
-                            startIcon={<BarChartIcon />}
-                            fullWidth
-                            variant="contained"
-                          >
-                            View Results
-                          </Button>
-                        </CardActions>
-                      </Card>
-                    </Grid>
-                  ))}
-              </Grid>
-
-              {filteredElections.length === 0 && (
-                <Box sx={{ textAlign: 'center', py: 4 }}>
-                  <Typography variant="h6" color="text.secondary">
-                    No elections found for the selected criteria.
-                  </Typography>
-                </Box>
-              )}
-            </>
-          )}
-
-          {selectedTab === 2 && (
+          {/* Show contests for tabs 0, 1, and 2 */}
+          {(selectedTab === 0 || selectedTab === 1 || selectedTab === 2) && (
             <>
               <Typography
                 variant="h5"
@@ -828,7 +895,148 @@ export default function HomePage() {
                   <Typography variant="h6" color="text.secondary">
                     {contestSearchEnabled
                       ? 'No contests found for the selected criteria.'
-                      : 'Enable contest search to filter contests by office or candidate.'}
+                      : 'No contests found for the selected date range.'}
+                  </Typography>
+                </Box>
+              )}
+            </>
+          )}
+
+          {/* Show ballot questions for tab 3 */}
+          {selectedTab === 3 && (
+            <>
+              <Typography
+                variant="h5"
+                component="h2"
+                gutterBottom
+                sx={{ mb: 3 }}
+              >
+                Ballot Questions ({filteredBallotQuestions.length})
+              </Typography>
+
+              <Grid container spacing={3}>
+                {filteredBallotQuestions.map((question) => {
+                  const election = elections.find(
+                    (e) => e.id === question.electionId
+                  );
+                  const jurisdiction = jurisdictions.find(
+                    (j) => j.id === question.jurisdictionId
+                  );
+                  const questionType = questionTypes.find(
+                    (qt) => qt.id === question.questionTypeId
+                  );
+
+                  return (
+                    <Grid item xs={12} md={6} key={question.id}>
+                      <Card
+                        sx={{
+                          height: '100%',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          transition: 'transform 0.2s, box-shadow 0.2s',
+                          '&:hover': {
+                            transform: 'translateY(-4px)',
+                            boxShadow: 3,
+                          },
+                        }}
+                      >
+                        <CardContent sx={{ flexGrow: 1 }}>
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              mb: 2,
+                            }}
+                          >
+                            <VoteIcon sx={{ mr: 1, color: 'primary.main' }} />
+                            <Chip
+                              label={question.passed ? 'Passed' : 'Failed'}
+                              color={question.passed ? 'success' : 'error'}
+                              size="small"
+                            />
+                          </Box>
+
+                          <Typography variant="h6" component="h3" gutterBottom>
+                            {question.shortTitle}
+                          </Typography>
+
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            gutterBottom
+                            sx={{
+                              display: '-webkit-box',
+                              WebkitLineClamp: 3,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden',
+                            }}
+                          >
+                            {question.extendedText}
+                          </Typography>
+
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            gutterBottom
+                          >
+                            <strong>Type:</strong>{' '}
+                            {questionType?.name || 'Unknown'}
+                          </Typography>
+
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            gutterBottom
+                          >
+                            <strong>Jurisdiction:</strong>{' '}
+                            {jurisdiction?.name || 'Unknown'}
+                          </Typography>
+
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            gutterBottom
+                          >
+                            <strong>Election:</strong>{' '}
+                            {election?.name || 'Unknown'}
+                          </Typography>
+
+                          <Box sx={{ mt: 2 }}>
+                            <Typography variant="body2" color="text.secondary">
+                              Yes: {question.yesVotes.toLocaleString()} (
+                              {question.yesPercentage}%)
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              No: {question.noVotes.toLocaleString()} (
+                              {question.noPercentage}%)
+                            </Typography>
+                          </Box>
+                        </CardContent>
+
+                        <CardActions>
+                          <Button
+                            component={Link}
+                            href={`/results?election=${question.electionId}`}
+                            size="small"
+                            startIcon={<BarChartIcon />}
+                            fullWidth
+                            variant="contained"
+                          >
+                            View Results
+                          </Button>
+                        </CardActions>
+                      </Card>
+                    </Grid>
+                  );
+                })}
+              </Grid>
+
+              {filteredBallotQuestions.length === 0 && (
+                <Box sx={{ textAlign: 'center', py: 4 }}>
+                  <Typography variant="h6" color="text.secondary">
+                    {ballotQuestionSearchEnabled
+                      ? 'No ballot questions found for the selected criteria.'
+                      : 'No ballot questions found for the selected date range.'}
                   </Typography>
                 </Box>
               )}
