@@ -33,6 +33,7 @@ import {
   Ticket, 
   ApiResponse 
 } from '@/types';
+import HorizontalBarChart from '@/components/HorizontalBarChart';
 
 interface ElectionData {
   election: Election;
@@ -237,90 +238,14 @@ function ResultsContent() {
                       {contest.name}
                     </Typography>
                     
-                    <Box sx={{ mb: 3 }}>
-                      {contestResult.results.map((result, index) => {
-                        let displayName = '';
-                        let party: Party | undefined;
-                        
-                        if (result.ticketId && tickets[result.ticketId]) {
-                          const ticket = tickets[result.ticketId];
-                          displayName = ticket.contestants.map(c => c.name).join(' & ');
-                          party = ticket.partyId ? parties[ticket.partyId] : undefined;
-                        } else if (result.contestantId && contestants[result.contestantId]) {
-                          const contestant = contestants[result.contestantId];
-                          displayName = contestant.name;
-                          party = contestant.partyId ? parties[contestant.partyId] : undefined;
-                        }
-
-                        const color = getColorForResult(index, party);
-                        const isWinner = result.winner;
-
-                        return (
-                          <Paper 
-                            key={result.ticketId || result.contestantId}
-                            sx={{ 
-                              p: 2, 
-                              mb: 2, 
-                              backgroundColor: isWinner ? `${color}15` : 'background.paper',
-                              border: `1px solid ${color}40`,
-                              ...(isWinner && { boxShadow: 2 })
-                            }}
-                          >
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <Box>
-                                <Typography 
-                                  variant="h6" 
-                                  sx={{ 
-                                    color: color,
-                                    fontWeight: isWinner ? 'bold' : 'normal'
-                                  }}
-                                >
-                                  {displayName}
-                                  {party && ` (${party.name})`}
-                                  {isWinner && ' 🏆'}
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                  {formatNumber(result.votes)} votes
-                                </Typography>
-                                {result.disqualified && (
-                                  <Typography variant="caption" color="error">
-                                    Disqualified: {result.disqualificationReason}
-                                  </Typography>
-                                )}
-                              </Box>
-                              <Typography 
-                                variant="h4" 
-                                sx={{ 
-                                  color: color,
-                                  fontWeight: isWinner ? 'bold' : 'normal'
-                                }}
-                              >
-                                {result.percentage}%
-                              </Typography>
-                            </Box>
-                            <LinearProgress 
-                              variant="determinate" 
-                              value={result.percentage} 
-                              sx={{ 
-                                mt: 1, 
-                                height: 8, 
-                                borderRadius: 4,
-                                backgroundColor: `${color}20`,
-                                '& .MuiLinearProgress-bar': {
-                                  backgroundColor: color
-                                }
-                              }}
-                            />
-                          </Paper>
-                        );
-                      })}
-                    </Box>
-                    
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                      <Typography variant="body2" color="text.secondary">
-                        Total votes: {formatNumber(contestResult.totalVotes)}
-                      </Typography>
-                    </Box>
+                    <HorizontalBarChart
+                      contestResult={contestResult}
+                      parties={parties}
+                      contestants={contestants}
+                      tickets={tickets}
+                      getColorForResult={getColorForResult}
+                      formatNumber={formatNumber}
+                    />
                   </Box>
                 );
               })}
