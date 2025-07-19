@@ -21,9 +21,7 @@ export default function RootLayout({
       <body>
         <ThemeProviderWrapper>
           <Header />
-          <main>
-            {children}
-          </main>
+          <main>{children}</main>
         </ThemeProviderWrapper>
       </body>
     </html>

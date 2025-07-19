@@ -17,12 +17,12 @@ export function formatDate(date: Date | string): string {
 
 export function getPartyColor(party: string): string {
   const partyColors: Record<string, string> = {
-    'democratic': '#1976d2',
-    'republican': '#d32f2f',
-    'independent': '#388e3c',
-    'green': '#4caf50',
-    'libertarian': '#ff9800',
+    democratic: '#1976d2',
+    republican: '#d32f2f',
+    independent: '#388e3c',
+    green: '#4caf50',
+    libertarian: '#ff9800',
   };
-  
+
   return partyColors[party.toLowerCase()] || '#757575';
 }

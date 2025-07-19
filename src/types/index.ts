@@ -35,7 +35,11 @@ export interface Ticket {
 }
 
 // Election Models
-export type ElectionStage = 'Just Shopping' | 'Extremely Buttery Party Primary' | 'Vegan Imperium Party Primary' | 'General';
+export type ElectionStage =
+  | 'Just Shopping'
+  | 'Extremely Buttery Party Primary'
+  | 'Vegan Imperium Party Primary'
+  | 'General';
 
 export interface Election {
   id: string;

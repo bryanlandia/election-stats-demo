@@ -1,5 +1,8 @@
 import React from 'react';
-import { Button as MuiButton, ButtonProps as MuiButtonProps } from '@mui/material';
+import {
+  Button as MuiButton,
+  ButtonProps as MuiButtonProps,
+} from '@mui/material';
 
 interface ButtonProps extends Omit<MuiButtonProps, 'variant'> {
   children: React.ReactNode;
@@ -11,15 +14,15 @@ export default function Button({
   variant = 'primary',
   ...props
 }: ButtonProps) {
-  const muiVariant = variant === 'primary' ? 'contained' : 
-                     variant === 'secondary' ? 'outlined' : 
-                     variant as 'contained' | 'outlined' | 'text';
+  const muiVariant =
+    variant === 'primary'
+      ? 'contained'
+      : variant === 'secondary'
+        ? 'outlined'
+        : (variant as 'contained' | 'outlined' | 'text');
 
   return (
-    <MuiButton 
-      variant={muiVariant}
-      {...props}
-    >
+    <MuiButton variant={muiVariant} {...props}>
       {children}
     </MuiButton>
   );

@@ -6,15 +6,15 @@ export async function GET(
 ) {
   try {
     const electionId = params.id;
-    
+
     // First try to get the new data structure
     let result = mockElectionResults[electionId];
-    
+
     // Fall back to legacy format for backward compatibility
     if (!result) {
       result = legacyMockResults[electionId];
     }
-    
+
     if (!result) {
       return NextResponse.json(
         { success: false, message: 'Election results not found' },
@@ -24,7 +24,7 @@ export async function GET(
 
     return NextResponse.json({
       success: true,
-      data: result
+      data: result,
     });
   } catch (error) {
     return NextResponse.json(

@@ -8,12 +8,12 @@ export async function GET(
   try {
     const electionId = params.id;
     const ballotQuestions = Object.values(mockBallotQuestions).filter(
-      question => question.electionId === electionId
+      (question) => question.electionId === electionId
     );
-    
+
     return NextResponse.json({
       success: true,
-      data: ballotQuestions
+      data: ballotQuestions,
     });
   } catch (error) {
     return NextResponse.json(

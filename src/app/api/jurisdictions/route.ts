@@ -5,7 +5,7 @@ export async function GET() {
   try {
     return NextResponse.json({
       success: true,
-      data: Object.values(mockJurisdictions)
+      data: Object.values(mockJurisdictions),
     });
   } catch (error) {
     return NextResponse.json(

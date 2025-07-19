@@ -14,9 +14,7 @@ export default function Card({ title, children, className = '' }: CardProps) {
         <Typography variant="h6" component="h3" gutterBottom>
           {title}
         </Typography>
-        <Box>
-          {children}
-        </Box>
+        <Box>{children}</Box>
       </CardContent>
     </MuiCard>
   );

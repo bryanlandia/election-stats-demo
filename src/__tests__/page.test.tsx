@@ -1,73 +1,96 @@
-import '@testing-library/jest-dom'
-import { render, screen, waitFor } from '@testing-library/react'
-import { ThemeProvider } from '@mui/material/styles'
-import { theme } from '@/lib/theme'
-import HomePage from '@/app/page'
+import HomePage from '@/app/page';
+import { theme } from '@/lib/theme';
+import { ThemeProvider } from '@mui/material/styles';
+import '@testing-library/jest-dom';
+import { render, screen, waitFor } from '@testing-library/react';
 
 // Mock the AppRouterCacheProvider since it's not needed for tests
 jest.mock('@mui/material-nextjs/v14-appRouter', () => ({
-  AppRouterCacheProvider: ({ children }: { children: React.ReactNode }) => children,
-}))
+  AppRouterCacheProvider: ({ children }: { children: React.ReactNode }) =>
+    children,
+}));
 
 // Mock fetch for API calls
-global.fetch = jest.fn()
+global.fetch = jest.fn();
 
-const mockFetch = fetch as jest.MockedFunction<typeof fetch>
+const mockFetch = fetch as jest.MockedFunction<typeof fetch>;
 
 const renderWithTheme = (component: React.ReactElement) => {
-  return render(
-    <ThemeProvider theme={theme}>
-      {component}
-    </ThemeProvider>
-  )
-}
+  return render(<ThemeProvider theme={theme}>{component}</ThemeProvider>);
+};
 
 describe('HomePage', () => {
   beforeEach(() => {
-    mockFetch.mockClear()
-  })
+    mockFetch.mockClear();
+  });
 
   it('renders the main heading', () => {
     // Mock the fetch to return empty elections to avoid API call issues
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({ success: true, data: [] }),
-    } as Response)
+    } as Response);
 
-    renderWithTheme(<HomePage />)
-    const heading = screen.getByRole('heading', { name: /election stats/i })
-    expect(heading).toBeInTheDocument()
-  })
+    renderWithTheme(<HomePage />);
+    const heading = screen.getByRole('heading', { name: /election stats/i });
+    expect(heading).toBeInTheDocument();
+  });
 
-  it('renders navigation cards', async () => {
-    // Mock the fetch to return empty elections
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ success: true, data: [] }),
-    } as Response)
+  it('renders search form with tabs', async () => {
+    // Mock all the API calls
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ success: true, data: [] }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ success: true, data: [] }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ success: true, data: [] }),
+      } as Response);
 
-    renderWithTheme(<HomePage />)
-    
-    // Check for the "All Results" heading specifically
-    expect(screen.getByRole('heading', { name: /all results/i })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: /quick access/i })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: /available elections/i })).toBeInTheDocument()
-  })
+    renderWithTheme(<HomePage />);
 
-  it('renders action buttons', async () => {
-    // Mock the fetch to return empty elections
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ success: true, data: [] }),
-    } as Response)
+    // Check for the search form heading
+    expect(
+      screen.getByRole('heading', { name: /search by/i })
+    ).toBeInTheDocument();
 
-    renderWithTheme(<HomePage />)
-    
+    // Check for the tabs
+    expect(
+      screen.getByRole('tab', { name: /year range/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('tab', { name: /election dates/i })
+    ).toBeInTheDocument();
+  });
+
+  it('renders year range slider', async () => {
+    // Mock all the API calls
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ success: true, data: [] }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ success: true, data: [] }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ success: true, data: [] }),
+      } as Response);
+
+    renderWithTheme(<HomePage />);
+
     // Wait for the component to finish loading
     await waitFor(() => {
-      expect(screen.getByRole('link', { name: /view all results/i })).toBeInTheDocument()
-    })
-  })
+      expect(screen.getAllByRole('slider')).toHaveLength(2); // Range slider has 2 inputs
+    });
+  });
 
   it('displays election cards when elections are available', async () => {
     // Mock the fetch to return some election data
@@ -78,7 +101,7 @@ describe('HomePage', () => {
         date: '2024-11-05',
         stage: 'General',
         jurisdictionId: '3',
-        status: 'completed'
+        status: 'completed',
       },
       {
         id: '2',
@@ -86,41 +109,56 @@ describe('HomePage', () => {
         date: '2025-07-19',
         stage: 'General',
         jurisdictionId: '1',
-        status: 'upcoming'
-      }
-    ]
+        status: 'upcoming',
+      },
+    ];
 
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ success: true, data: mockElections }),
-    } as Response)
+    // Mock all the API calls
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ success: true, data: mockElections }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ success: true, data: [] }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ success: true, data: [] }),
+      } as Response);
 
-    renderWithTheme(<HomePage />)
-    
+    renderWithTheme(<HomePage />);
+
     // Wait for elections to load and check if they appear
     await waitFor(() => {
-      expect(screen.getByText('Federal General Election 2024')).toBeInTheDocument()
-      expect(screen.getByText('New Crampshire General Election 2025')).toBeInTheDocument()
-    })
+      expect(
+        screen.getByText('Federal General Election 2024')
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText('New Crampshire General Election 2025')
+      ).toBeInTheDocument();
+    });
 
-    // Check that the completed election has a "View Results" button
+    // Check that the View Results buttons appear
     await waitFor(() => {
-      expect(screen.getByRole('link', { name: /view results/i })).toBeInTheDocument()
-    })
-  })
+      expect(
+        screen.getAllByRole('link', { name: /view results/i })
+      ).toHaveLength(2);
+    });
+  });
 
   it('displays error message when elections fetch fails', async () => {
-    // Mock the fetch to return an error
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ success: false, message: 'Failed to fetch elections' }),
-    } as Response)
+    // Mock the fetch to reject (network error)
+    mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
-    renderWithTheme(<HomePage />)
-    
+    renderWithTheme(<HomePage />);
+
     // Wait for error message to appear
     await waitFor(() => {
-      expect(screen.getByText('Failed to fetch elections')).toBeInTheDocument()
-    })
-  })
-})
+      expect(
+        screen.getByText('Failed to fetch election data')
+      ).toBeInTheDocument();
+    });
+  });
+});

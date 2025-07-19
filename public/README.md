@@ -13,5 +13,6 @@ This directory contains static assets that are served directly by Next.js.
 ## Usage
 
 Files in this directory are served from the root URL. For example:
+
 - `/public/logo.png` becomes accessible at `/logo.png`
 - Always use absolute paths when referencing these files

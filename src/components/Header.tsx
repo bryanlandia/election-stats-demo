@@ -34,7 +34,7 @@ export default function Header({ title = 'Election Stats' }: HeaderProps) {
           >
             {title}
           </Typography>
-          
+
           <Box sx={{ flexGrow: 1, display: 'flex', ml: 2 }}>
             <Button
               component={Link}

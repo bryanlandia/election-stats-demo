@@ -1,67 +1,190 @@
 'use client';
 
-import { ApiResponse, Election } from '@/types';
-import {
-  BarChart as BarChartIcon,
-  Event as EventIcon,
-  HowToVote as VoteIcon
-} from '@mui/icons-material';
-import {
-  Alert,
-  Box,
+import React, { useState, useEffect } from 'react';
+import { 
+  Container, 
+  Typography, 
+  Grid, 
+  Card, 
+  CardContent, 
+  CardActions, 
   Button,
-  Card,
-  CardActions,
-  CardContent,
+  Box,
   Chip,
   CircularProgress,
-  Container,
-  Grid,
-  Typography
+  Alert
 } from '@mui/material';
+import { 
+  BarChart as BarChartIcon,
+  Event as EventIcon,
+  Search as SearchIcon,
+  HowToVote as VoteIcon,
+} from '@mui/icons-material';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { Election, ApiResponse } from '@/types';
 
 export default function HomePage() {
   const [elections, setElections] = useState<Election[]>([]);
+  const [contests, setContests] = useState<Contest[]>([]);
+  const [ballotQuestions, setBallotQuestions] = useState<BallotQuestion[]>([]);
+  const [filteredElections, setFilteredElections] = useState<Election[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedTab, setSelectedTab] = useState(0);
+  const [yearRange, setYearRange] = useState<number[]>([2024, 2025]);
+  const [selectedElection, setSelectedElection] = useState<string>('all');
 
   useEffect(() => {
-    const fetchElections = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch('/api/elections');
-        const data: ApiResponse<Election[]> = await response.json();
-        if (data.success) {
-          setElections(data.data);
+        const [electionsResponse, contestsResponse, ballotQuestionsResponse] =
+          await Promise.all([
+            fetch('/api/elections'),
+            fetch('/api/elections/all/contests'),
+            fetch('/api/elections/all/ballot-questions'),
+          ]);
+
+        const electionsData: ApiResponse<Election[]> =
+          await electionsResponse.json();
+        let contestsData: ApiResponse<Contest[]> = { success: true, data: [] };
+        let ballotQuestionsData: ApiResponse<BallotQuestion[]> = {
+          success: true,
+          data: [],
+        };
+
+        // Handle contests response (might not exist for all elections)
+        if (contestsResponse.ok) {
+          contestsData = await contestsResponse.json();
+        }
+
+        // Handle ballot questions response (might not exist for all elections)
+        if (ballotQuestionsResponse.ok) {
+          ballotQuestionsData = await ballotQuestionsResponse.json();
+        }
+
+        if (electionsData.success) {
+          setElections(electionsData.data);
+          setFilteredElections(electionsData.data);
+          setContests(contestsData.data || []);
+          setBallotQuestions(ballotQuestionsData.data || []);
+
+          // Set year range based on available elections
+          const years = electionsData.data.map((e) =>
+            new Date(e.date).getFullYear()
+          );
+          const minYear = Math.min(...years);
+          const maxYear = Math.max(...years);
+          setYearRange([minYear, maxYear]);
         } else {
-          setError(data.message || 'Failed to fetch elections');
+          setError(electionsData.message || 'Failed to fetch elections');
         }
       } catch (err) {
-        setError('Failed to fetch elections');
+        setError('Failed to fetch election data');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchElections();
+    fetchData();
   }, []);
+
+  // Filter elections when tab or filters change
+  useEffect(() => {
+    let filtered = elections;
+
+    if (selectedTab === 0) {
+      // Year range filter
+      filtered = elections.filter((election) => {
+        const year = new Date(election.date).getFullYear();
+        return year >= yearRange[0] && year <= yearRange[1];
+      });
+    } else if (selectedTab === 1) {
+      // Election dates filter
+      if (selectedElection !== 'all') {
+        filtered = elections.filter(
+          (election) => election.id === selectedElection
+        );
+      }
+    }
+
+    setFilteredElections(filtered);
+  }, [selectedTab, yearRange, selectedElection, elections]);
+
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setSelectedTab(newValue);
+  };
+
+  const handleYearRangeChange = (event: Event, newValue: number | number[]) => {
+    setYearRange(newValue as number[]);
+  };
+
+  const handleElectionChange = (event: any) => {
+    setSelectedElection(event.target.value);
+  };
+
+  const getContestCount = (electionId: string) => {
+    const contestCount = contests.filter(
+      (c) => c.electionId === electionId
+    ).length;
+    const ballotQuestionCount = ballotQuestions.filter(
+      (bq) => bq.electionId === electionId
+    ).length;
+    return contestCount + ballotQuestionCount;
+  };
+
+  const formatElectionDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return `${date.getFullYear()} ${months[date.getMonth()]} ${date.getDate()}`;
+  };
+
+  const groupElectionsByYear = (elections: Election[]) => {
+    return elections.reduce((groups: Record<string, Election[]>, election) => {
+      const year = new Date(election.date).getFullYear().toString();
+      if (!groups[year]) {
+        groups[year] = [];
+      }
+      groups[year].push(election);
+      return groups;
+    }, {});
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed': return 'success';
-      case 'ongoing': return 'warning';
-      case 'upcoming': return 'info';
-      default: return 'default';
+      case 'completed':
+        return 'success';
+      case 'ongoing':
+        return 'warning';
+      case 'upcoming':
+        return 'info';
+      default:
+        return 'default';
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'completed': return '✓';
-      case 'ongoing': return '⏳';
-      case 'upcoming': return '📅';
-      default: return '';
+      case 'completed':
+        return '✓';
+      case 'ongoing':
+        return '⏳';
+      case 'upcoming':
+        return '📅';
+      default:
+        return '';
     }
   };
 
@@ -69,148 +192,234 @@ export default function HomePage() {
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Box
         sx={{
-          textAlign: "center",
-          mb: 6
-        }}>
+          textAlign: 'center',
+          mb: 6,
+        }}
+      >
         <Typography variant="h1" component="h1" gutterBottom>
           Election Stats
         </Typography>
         <Typography
           variant="h6"
           sx={{
-            color: "text.secondary",
+            color: 'text.secondary',
             maxWidth: 600,
             mx: 'auto'
           }}>
           Comprehensive election statistics and data visualization platform. 
-          Track voting trends, analyze demographics, and explore democratic participation.
+          Real-time election results and vote tracking.
         </Typography>
       </Box>
 
-      {/* Quick Access Section */}
-      <Box sx={{ mb: 6 }}>
-        <Typography variant="h4" component="h2" gutterBottom sx={{ textAlign: 'center' }}>
-          Quick Access
+      {/* Search Form */}
+      <Paper sx={{ p: 3, mb: 4 }}>
+        <Typography
+          variant="h5"
+          component="h2"
+          gutterBottom
+          sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}
+        >
+          <SearchIcon />
+          Search By
         </Typography>
-        <Grid container spacing={4} justifyContent="center">
-          <Grid item xs={12} md={6} lg={4}>
-            <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-              <CardContent sx={{ flexGrow: 1 }}>
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    mb: 2
-                  }}>
-                  <BarChartIcon color="primary" sx={{ mr: 1 }} />
-                  <Typography variant="h5" component="h3">
-                    All Results
-                  </Typography>
-                </Box>
-                <Typography sx={{
-                  color: "text.secondary"
-                }}>
-                  View all election results with interactive selection.
-                </Typography>
-              </CardContent>
-              <CardActions>
-                <Button 
-                  component={Link} 
-                  href="/results" 
-                  variant="contained" 
-                  fullWidth
+
+        <Tabs
+          value={selectedTab}
+          onChange={handleTabChange}
+          sx={{ mb: 3, borderBottom: 1, borderColor: 'divider' }}
+          centered
+        >
+          <Tab label="YEAR RANGE" />
+          <Tab label="ELECTION DATES" />
+        </Tabs>
+
+        <Box sx={{ minHeight: 120 }}>
+          {selectedTab === 0 && (
+            <Box sx={{ px: 2 }}>
+              <Typography variant="h6" gutterBottom>
+                Year Range
+              </Typography>
+              <Box sx={{ px: 3, py: 2 }}>
+                <Slider
+                  value={yearRange}
+                  onChange={handleYearRangeChange}
+                  valueLabelDisplay="on"
+                  min={2024}
+                  max={2025}
+                  step={1}
+                  marks={[
+                    { value: 2024, label: '2024' },
+                    { value: 2025, label: '2025' },
+                  ]}
+                  sx={{ mt: 2 }}
+                />
+              </Box>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  gap: 2,
+                  mt: 2,
+                }}
+              >
+                <Chip
+                  label={`${yearRange[0]}`}
+                  variant="outlined"
+                  size="small"
+                />
+                <Chip
+                  label={`${yearRange[1]}`}
+                  variant="outlined"
+                  size="small"
+                />
+              </Box>
+            </Box>
+          )}
+
+          {selectedTab === 1 && (
+            <Box sx={{ px: 2 }}>
+              <FormControl fullWidth>
+                <InputLabel>All Elections</InputLabel>
+                <Select
+                  value={selectedElection}
+                  onChange={handleElectionChange}
+                  input={<OutlinedInput label="All Elections" />}
                 >
-                  View All Results
-                </Button>
-              </CardActions>
-            </Card>
-          </Grid>
-        </Grid>
-      </Box>
+                  <MenuItem value="all">All Elections</MenuItem>
+                  {Object.entries(groupElectionsByYear(elections))
+                    .map(([year, yearElections]) => [
+                      <Divider key={`divider-${year}`}>
+                        <Chip label={year} size="small" />
+                      </Divider>,
+                      ...yearElections.map((election) => (
+                        <MenuItem key={election.id} value={election.id}>
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              width: '100%',
+                              alignItems: 'center',
+                            }}
+                          >
+                            <Box>
+                              {formatElectionDate(election.date)} -{' '}
+                              {election.stage}
+                            </Box>
+                            <Chip
+                              label={`${getContestCount(election.id)} contests`}
+                              size="small"
+                              variant="outlined"
+                            />
+                          </Box>
+                        </MenuItem>
+                      )),
+                    ])
+                    .flat()}
+                </Select>
+              </FormControl>
+            </Box>
+          )}
+        </Box>
+      </Paper>
 
-      {/* Elections Section */}
-      <Box>
-        <Typography variant="h4" component="h2" gutterBottom sx={{ textAlign: 'center' }}>
-          Available Elections
-        </Typography>
-        
-        {loading && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-            <CircularProgress />
-          </Box>
-        )}
+      {loading && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+          <CircularProgress />
+        </Box>
+      )}
 
-        {error && (
-          <Alert severity="error" sx={{ mb: 4 }}>
-            {error}
-          </Alert>
-        )}
+      {error && (
+        <Alert severity="error" sx={{ mb: 4 }}>
+          {error}
+        </Alert>
+      )}
 
-        {!loading && !error && (
-          <Grid container spacing={4}>
-            {elections.map((election) => (
-              <Grid item xs={12} md={6} lg={4} key={election.id}>
-                <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      {/* Elections Grid */}
+      {!loading && !error && (
+        <>
+          <Typography variant="h5" component="h2" gutterBottom sx={{ mb: 3 }}>
+            Elections ({filteredElections.length})
+          </Typography>
+
+          <Grid container spacing={3}>
+            {filteredElections.map((election) => (
+              <Grid item xs={12} sm={6} md={4} key={election.id}>
+                <Card
+                  sx={{
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    transition: 'transform 0.2s, box-shadow 0.2s',
+                    '&:hover': {
+                      transform: 'translateY(-4px)',
+                      boxShadow: 3,
+                    },
+                  }}
+                >
                   <CardContent sx={{ flexGrow: 1 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                      <Typography variant="h6" component="h3" sx={{ flexGrow: 1, mr: 1 }}>
-                        {election.name}
-                      </Typography>
-                      <Chip 
-                        label={`${getStatusIcon(election.status)} ${election.status.charAt(0).toUpperCase() + election.status.slice(1)}`}
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                      <EventIcon sx={{ mr: 1, color: 'primary.main' }} />
+                      <Chip
+                        label={`${getStatusIcon(election.status)} ${election.status}`}
                         color={getStatusColor(election.status) as any}
                         size="small"
                       />
                     </Box>
-                    
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                      <EventIcon sx={{ mr: 1, color: 'text.secondary', fontSize: 20 }} />
+
+                    <Typography variant="h6" component="h3" gutterBottom>
+                      {election.name}
+                    </Typography>
+
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      gutterBottom
+                    >
+                      <strong>Date:</strong> {formatElectionDate(election.date)}
+                    </Typography>
+
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      gutterBottom
+                    >
+                      <strong>Stage:</strong> {election.stage}
+                    </Typography>
+
+                    <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+                      <VoteIcon sx={{ mr: 1, fontSize: 16 }} />
                       <Typography variant="body2" color="text.secondary">
-                        {new Date(election.date).toLocaleDateString()}
-                      </Typography>
-                    </Box>
-                    
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                      <VoteIcon sx={{ mr: 1, color: 'text.secondary', fontSize: 20 }} />
-                      <Typography variant="body2" color="text.secondary">
-                        {election.stage}
+                        {getContestCount(election.id)} contests
                       </Typography>
                     </Box>
                   </CardContent>
-                  
+
                   <CardActions>
-                    {election.status === 'completed' ? (
-                      <Button 
-                        component={Link} 
-                        href={`/results?id=${election.id}`}
-                        variant="contained" 
-                        fullWidth
-                        startIcon={<BarChartIcon />}
-                      >
-                        View Results
-                      </Button>
-                    ) : (
-                      <Button 
-                        variant="outlined" 
-                        fullWidth
-                        disabled
-                      >
-                        {election.status === 'ongoing' ? 'Results Pending' : 'Not Available Yet'}
-                      </Button>
-                    )}
+                    <Button
+                      component={Link}
+                      href={`/results?election=${election.id}`}
+                      size="small"
+                      startIcon={<BarChartIcon />}
+                      fullWidth
+                      variant="contained"
+                    >
+                      View Results
+                    </Button>
                   </CardActions>
                 </Card>
               </Grid>
             ))}
           </Grid>
-        )}
 
-        {!loading && !error && elections.length === 0 && (
-          <Alert severity="info" sx={{ mt: 4 }}>
-            No elections available at this time.
-          </Alert>
-        )}
-      </Box>
+          {filteredElections.length === 0 && (
+            <Box sx={{ textAlign: 'center', py: 4 }}>
+              <Typography variant="h6" color="text.secondary">
+                No elections found for the selected criteria.
+              </Typography>
+            </Box>
+          )}
+        </>
+      )}
     </Container>
   );
 }
