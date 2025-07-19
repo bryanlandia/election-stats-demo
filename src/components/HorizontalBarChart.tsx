@@ -1,4 +1,4 @@
-import { Contestant, ContestResult, Party, Ticket } from '@/types';
+import { Candidate, ContestResult, Party, Ticket } from '@/types';
 import { Box, Paper, Typography } from '@mui/material';
 import React from 'react';
 
@@ -6,7 +6,7 @@ import React from 'react';
 interface HorizontalBarChartProps {
   contestResult: ContestResult;
   parties: Record<string, Party>;
-  contestants: Record<string, Contestant>;
+  candidates: Record<string, Candidate>;
   tickets: Record<string, Ticket>;
   getColorForResult: (index: number, party?: Party) => string;
   formatNumber: (num: number) => string;
@@ -15,7 +15,7 @@ interface HorizontalBarChartProps {
 export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
   contestResult,
   parties,
-  contestants,
+  candidates,
   tickets,
   getColorForResult,
   formatNumber,
@@ -97,21 +97,18 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
 
             if (result.ticketId && tickets[result.ticketId]) {
               const ticket = tickets[result.ticketId];
-              displayName = ticket.contestants
+              displayName = ticket.candidates
                 .map((c) => getLastName(c.name))
                 .join(' & ');
-              fullName = ticket.contestants.map((c) => c.name).join(' & ');
+              fullName = ticket.candidates.map((c) => c.name).join(' & ');
               party = ticket.partyId ? parties[ticket.partyId] : undefined;
               partyAbbrev = party ? ` (${party.name.charAt(0)})` : '';
-            } else if (
-              result.contestantId &&
-              contestants[result.contestantId]
-            ) {
-              const contestant = contestants[result.contestantId];
-              displayName = getLastName(contestant.name);
-              fullName = contestant.name;
-              party = contestant.partyId
-                ? parties[contestant.partyId]
+            } else if (result.candidateId && candidates[result.candidateId]) {
+              const candidate = candidates[result.candidateId];
+              displayName = getLastName(candidate.name);
+              fullName = candidate.name;
+              party = candidate.partyId
+                ? parties[candidate.partyId]
                 : undefined;
               partyAbbrev = party ? ` (${party.name.charAt(0)})` : '';
             }
@@ -122,7 +119,7 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
             const isWinner = result.winner;
 
             return (
-              <g key={result.ticketId || result.contestantId}>
+              <g key={result.ticketId || result.candidateId}>
                 {/* Candidate name */}
                 <text
                   x={leftMargin - 10}
@@ -247,7 +244,7 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
             fontSize="12"
             fill="#666"
           >
-            Total Votes: {formatNumber(contestResult.totalVotes)}
+            Total Ballots: {formatNumber(contestResult.totalVotes)}
           </text>
         </svg>
       </Box>
@@ -263,18 +260,18 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
                 let displayName = '';
                 let fullName = '';
                 if (r.ticketId && tickets[r.ticketId]) {
-                  displayName = tickets[r.ticketId].contestants
+                  displayName = tickets[r.ticketId].candidates
                     .map((c) => getLastName(c.name))
                     .join(' & ');
-                  fullName = tickets[r.ticketId].contestants
+                  fullName = tickets[r.ticketId].candidates
                     .map((c) => c.name)
                     .join(' & ');
-                } else if (r.contestantId && contestants[r.contestantId]) {
-                  displayName = getLastName(contestants[r.contestantId].name);
-                  fullName = contestants[r.contestantId].name;
+                } else if (r.candidateId && candidates[r.candidateId]) {
+                  displayName = getLastName(candidates[r.candidateId].name);
+                  fullName = candidates[r.candidateId].name;
                 }
                 return (
-                  <span key={r.ticketId || r.contestantId} title={fullName}>
+                  <span key={r.ticketId || r.candidateId} title={fullName}>
                     {' • '}
                     {displayName}: {r.disqualificationReason}
                   </span>

@@ -1,21 +1,21 @@
-import { mockCandidates } from '@/lib/mockData';
-import { ApiResponse, Candidate } from '@/types';
+import { mockOffices } from '@/lib/mockData';
+import { ApiResponse, Office } from '@/types';
 import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
-    const candidates = Object.values(mockCandidates);
+    const offices = Object.values(mockOffices);
 
-    const response: ApiResponse<Candidate[]> = {
+    const response: ApiResponse<Office[]> = {
       success: true,
-      data: candidates,
+      data: offices,
     };
 
     return NextResponse.json(response);
   } catch (error) {
     const response: ApiResponse<null> = {
       success: false,
-      message: 'Failed to fetch candidates',
+      message: 'Failed to fetch offices',
       data: null,
     };
 

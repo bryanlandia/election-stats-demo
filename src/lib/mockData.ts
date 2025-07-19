@@ -1,11 +1,12 @@
 import {
   BallotQuestion,
+  Candidate,
   Contest,
-  Contestant,
   ContestResult,
   Election,
   ElectionResult,
   Jurisdiction,
+  Office,
   Party,
   Tenant,
   Ticket,
@@ -63,37 +64,93 @@ export const mockParties: Record<string, Party> = {
   },
 };
 
+// Office Data
+export const mockOffices: Record<string, Office> = {
+  '1': {
+    id: '1',
+    name: 'God-Emperor of the United States',
+    description:
+      'The highest executive office of the Federal Government, responsible for supreme leadership and divine mandate over the nation.',
+    jurisdictionId: '3', // Federal jurisdiction
+    isElected: true,
+    termLength: 4,
+    maxTerms: 2,
+  },
+  '2': {
+    id: '2',
+    name: 'Chief Sycophant of the United States',
+    description:
+      'The second-highest executive office of the Federal Government, serving as the primary advisor and loyal supporter to the God-Emperor.',
+    jurisdictionId: '3', // Federal jurisdiction
+    isElected: true,
+    termLength: 4,
+    maxTerms: 2,
+  },
+  '3': {
+    id: '3',
+    name: 'Dogcatcher of Bullton County',
+    description:
+      'Responsible for the capture and care of stray dogs within Bullton County limits.',
+    jurisdictionId: '2', // Bullton County
+    isElected: true,
+    termLength: 4,
+    // No term limits for dogcatcher
+  },
+  '4': {
+    id: '4',
+    name: 'Extremely Buttery Party Nominee',
+    description:
+      'The official nominee of the Extremely Buttery Party for federal elections.',
+    jurisdictionId: '3', // Federal jurisdiction
+    isElected: true,
+    termLength: 4,
+    maxTerms: 2,
+  },
+};
+
 // Election Data
 export const mockElections: Record<string, Election> = {
   '1': {
     id: '1',
-    name: 'Federal General Election 2024',
+    name: 'Federal General Election 2024 - God-Emperor',
     date: '2024-11-05', // First Tuesday of November 2024
     stage: 'General Election',
     jurisdictionId: '3',
+    officeId: '1', // God-Emperor office
     status: 'completed',
   },
   '2': {
     id: '2',
-    name: 'New Crampshire General Election 2025',
-    date: '2025-07-19',
+    name: 'Federal General Election 2024 - Chief Sycophant',
+    date: '2024-11-05', // Same election day
     stage: 'General Election',
-    jurisdictionId: '1',
+    jurisdictionId: '3',
+    officeId: '2', // Chief Sycophant office
     status: 'completed',
   },
   '3': {
     id: '3',
+    name: 'New Crampshire General Election 2025',
+    date: '2025-07-19',
+    stage: 'General Election',
+    jurisdictionId: '1',
+    officeId: '3', // Dogcatcher office (now ID 3)
+    status: 'completed',
+  },
+  '4': {
+    id: '4',
     name: 'Extremely Buttery Party Primary 2023',
     date: '2023-08-06',
     stage: 'Extremely Buttery Party Primary',
     jurisdictionId: '3',
+    officeId: '4', // Party nominee office (now ID 4)
     status: 'completed',
   },
 };
 
-// Contestant Data
-export const mockContestants: Record<string, Contestant> = {
-  // Federal Election Contestants
+// Candidate Data
+export const mockCandidates: Record<string, Candidate> = {
+  // Federal Election Candidates
   '1': {
     id: '1',
     name: 'Martha Stewart',
@@ -126,13 +183,13 @@ export const mockContestants: Record<string, Contestant> = {
     position: 'Chief Sycophant',
   },
 
-  // Primary Election Contestants (single contestants)
+  // Primary Election Candidates (single candidates)
   '7': { id: '7', name: 'Martha Stewart', partyId: '1' },
   '8': { id: '8', name: 'Emerill Lagasse', partyId: '1' },
   '9': { id: '9', name: 'Rachel Ray', partyId: '1' },
   '10': { id: '10', name: 'Anthony Bourdain', partyId: '1' },
 
-  // Dogcatcher Contestants (non-partisan)
+  // Dogcatcher Candidates (non-partisan)
   '11': { id: '11', name: 'Borkmeister Fuller' },
   '12': { id: '12', name: 'Mean Lady' },
   '13': { id: '13', name: 'Not-a-Poodle' },
@@ -143,17 +200,17 @@ export const mockTickets: Record<string, Ticket> = {
   '1': {
     id: '1',
     partyId: '1',
-    contestants: [mockContestants['1'], mockContestants['2']],
+    candidates: [mockCandidates['1'], mockCandidates['2']],
   },
   '2': {
     id: '2',
     partyId: '2',
-    contestants: [mockContestants['3'], mockContestants['4']],
+    candidates: [mockCandidates['3'], mockCandidates['4']],
   },
   '3': {
     id: '3',
     partyId: '3',
-    contestants: [mockContestants['5'], mockContestants['6']],
+    candidates: [mockCandidates['5'], mockCandidates['6']],
   },
 };
 
@@ -163,36 +220,53 @@ export const mockContests: Record<string, Contest> = {
     id: '1',
     electionId: '1',
     jurisdictionId: '3',
-    name: 'God-Emperor and Chief Sycophant of the United States',
+    name: 'God-Emperor of the United States',
     isPartisan: true,
-    isTicketBased: true,
-    tickets: [mockTickets['1'], mockTickets['2'], mockTickets['3']],
+    isTicketBased: false,
+    candidates: [
+      mockCandidates['1'], // Martha Stewart (God-Emperor position)
+      mockCandidates['3'], // Joaquin Phoenix (God-Emperor position)
+      mockCandidates['5'], // Ziz LaSota (God-Emperor position)
+    ],
   },
   '2': {
     id: '2',
     electionId: '2',
-    jurisdictionId: '2',
-    name: 'Dogcatcher',
-    isPartisan: false,
+    jurisdictionId: '3',
+    name: 'Chief Sycophant of the United States',
+    isPartisan: true,
     isTicketBased: false,
-    contestants: [
-      mockContestants['11'],
-      mockContestants['12'],
-      mockContestants['13'],
+    candidates: [
+      mockCandidates['2'], // Emerill Lagasse (Chief Sycophant position)
+      mockCandidates['4'], // Ariana Grande (Chief Sycophant position)
+      mockCandidates['6'], // Emma Borhanian (Chief Sycophant position)
     ],
   },
   '3': {
     id: '3',
     electionId: '3',
+    jurisdictionId: '2',
+    name: 'Dogcatcher',
+    isPartisan: false,
+    isTicketBased: false,
+    candidates: [
+      mockCandidates['11'],
+      mockCandidates['12'],
+      mockCandidates['13'],
+    ],
+  },
+  '4': {
+    id: '4',
+    electionId: '4',
     jurisdictionId: '3',
     name: 'Extremely Buttery Party Primary',
     isPartisan: true,
     isTicketBased: false,
-    contestants: [
-      mockContestants['7'],
-      mockContestants['8'],
-      mockContestants['9'],
-      mockContestants['10'],
+    candidates: [
+      mockCandidates['7'],
+      mockCandidates['8'],
+      mockCandidates['9'],
+      mockCandidates['10'],
     ],
   },
 };
@@ -201,7 +275,7 @@ export const mockContests: Record<string, Contest> = {
 export const mockBallotQuestions: Record<string, BallotQuestion> = {
   '1': {
     id: '1',
-    electionId: '2',
+    electionId: '3', // Updated to match the Dogcatcher election ID
     jurisdictionId: '1',
     shortTitle:
       'Decided: The State of New Crampshire shall elect its legislature via sortition among all eligible registered voters in the State of New Crampshire.',
@@ -222,19 +296,19 @@ export const mockContestResults: Record<string, ContestResult> = {
     totalVotes: 158000000,
     results: [
       {
-        ticketId: '1',
+        candidateId: '1', // Martha Stewart (God-Emperor)
         votes: 117236000,
         percentage: 74.2,
         winner: true,
       },
       {
-        ticketId: '2',
+        candidateId: '3', // Joaquin Phoenix (God-Emperor)
         votes: 33496000,
         percentage: 21.2,
         winner: false,
       },
       {
-        ticketId: '3',
+        candidateId: '5', // Ziz LaSota (God-Emperor)
         votes: 7268000,
         percentage: 4.6,
         winner: false,
@@ -243,40 +317,64 @@ export const mockContestResults: Record<string, ContestResult> = {
   },
   '2': {
     contestId: '2',
-    totalVotes: 918084,
+    totalVotes: 158000000,
     results: [
       {
-        contestantId: '11',
-        votes: 743648,
-        percentage: 81.0,
+        candidateId: '2', // Emerill Lagasse (Chief Sycophant)
+        votes: 119158000,
+        percentage: 75.4,
         winner: true,
       },
       {
-        contestantId: '12',
-        votes: 9181,
-        percentage: 1.0,
+        candidateId: '4', // Ariana Grande (Chief Sycophant)
+        votes: 31600000,
+        percentage: 20.0,
         winner: false,
       },
       {
-        contestantId: '13',
-        votes: 165255,
-        percentage: 18.0,
+        candidateId: '6', // Emma Borhanian (Chief Sycophant)
+        votes: 7242000,
+        percentage: 4.6,
         winner: false,
       },
     ],
   },
   '3': {
     contestId: '3',
+    totalVotes: 918084,
+    results: [
+      {
+        candidateId: '11',
+        votes: 743648,
+        percentage: 81.0,
+        winner: true,
+      },
+      {
+        candidateId: '12',
+        votes: 9181,
+        percentage: 1.0,
+        winner: false,
+      },
+      {
+        candidateId: '13',
+        votes: 165255,
+        percentage: 18.0,
+        winner: false,
+      },
+    ],
+  },
+  '4': {
+    contestId: '4',
     totalVotes: 2400000,
     results: [
       {
-        contestantId: '7',
+        candidateId: '7',
         votes: 1032000,
         percentage: 43.0,
         winner: true,
       },
       {
-        contestantId: '10',
+        candidateId: '10',
         votes: 912000,
         percentage: 38.0,
         winner: false,
@@ -284,13 +382,13 @@ export const mockContestResults: Record<string, ContestResult> = {
         disqualificationReason: 'Deceased',
       },
       {
-        contestantId: '9',
+        candidateId: '9',
         votes: 312000,
         percentage: 13.0,
         winner: false,
       },
       {
-        contestantId: '8',
+        candidateId: '8',
         votes: 144000,
         percentage: 6.0,
         winner: false,
@@ -307,15 +405,23 @@ export const mockElectionResults: Record<string, ElectionResult> = {
     totalVotes: 158000000,
     reportingPercentage: 100,
     lastUpdated: '2024-11-06T10:30:00Z',
-    contestResults: [mockContestResults['1']],
+    contestResults: [mockContestResults['1']], // God-Emperor contest
   },
   '2': {
     id: '2',
     electionId: '2',
+    totalVotes: 158000000,
+    reportingPercentage: 100,
+    lastUpdated: '2024-11-06T10:30:00Z',
+    contestResults: [mockContestResults['2']], // Chief Sycophant contest
+  },
+  '3': {
+    id: '3',
+    electionId: '3',
     totalVotes: 5215915, // Combined votes from ballot question and dogcatcher contest
     reportingPercentage: 100,
     lastUpdated: '2025-07-20T08:00:00Z',
-    contestResults: [mockContestResults['2']],
+    contestResults: [mockContestResults['3']],
     ballotQuestionResults: [
       {
         ballotQuestionId: '1',
@@ -327,13 +433,13 @@ export const mockElectionResults: Record<string, ElectionResult> = {
       },
     ],
   },
-  '3': {
-    id: '3',
-    electionId: '3',
+  '4': {
+    id: '4',
+    electionId: '4',
     totalVotes: 2400000,
     reportingPercentage: 100,
     lastUpdated: '2024-08-07T11:15:00Z',
-    contestResults: [mockContestResults['3']],
+    contestResults: [mockContestResults['4']],
   },
 };
 

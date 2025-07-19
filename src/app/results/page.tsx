@@ -4,10 +4,11 @@ import HorizontalBarChart from '@/components/HorizontalBarChart';
 import {
   ApiResponse,
   BallotQuestion,
+  Candidate,
   Contest,
-  Contestant,
   Election,
   ElectionResult,
+  Office,
   Party,
   Ticket,
 } from '@/types';
@@ -37,8 +38,9 @@ interface ElectionData {
   contests: Contest[];
   ballotQuestions: BallotQuestion[];
   parties: Record<string, Party>;
-  contestants: Record<string, Contestant>;
+  candidates: Record<string, Candidate>;
   tickets: Record<string, Ticket>;
+  offices: Record<string, Office>;
 }
 
 function ResultsContent() {
@@ -83,16 +85,18 @@ function ResultsContent() {
           contestsRes,
           ballotQuestionsRes,
           partiesRes,
-          contestantsRes,
+          candidatesRes,
           ticketsRes,
+          officesRes,
         ] = await Promise.all([
           fetch(`/api/elections/${electionId}/results`),
           fetch('/api/elections'),
           fetch(`/api/elections/${electionId}/contests`),
           fetch(`/api/elections/${electionId}/ballot-questions`),
           fetch('/api/parties'),
-          fetch('/api/contestants'),
+          fetch('/api/candidates'),
           fetch('/api/tickets'),
+          fetch('/api/offices'),
         ]);
 
         const [
@@ -101,16 +105,18 @@ function ResultsContent() {
           contestsData,
           ballotQuestionsData,
           partiesData,
-          contestantsData,
+          candidatesData,
           ticketsData,
+          officesData,
         ] = await Promise.all([
           resultsRes.json(),
           electionsRes.json(),
           contestsRes.json(),
           ballotQuestionsRes.json(),
           partiesRes.json(),
-          contestantsRes.json(),
+          candidatesRes.json(),
           ticketsRes.json(),
+          officesRes.json(),
         ]);
 
         if (!resultsData.success) {
@@ -135,10 +141,10 @@ function ResultsContent() {
           });
         }
 
-        const contestants: Record<string, Contestant> = {};
-        if (contestantsData.success) {
-          contestantsData.data.forEach((contestant: Contestant) => {
-            contestants[contestant.id] = contestant;
+        const candidates: Record<string, Candidate> = {};
+        if (candidatesData.success) {
+          candidatesData.data.forEach((candidate: Candidate) => {
+            candidates[candidate.id] = candidate;
           });
         }
 
@@ -146,6 +152,13 @@ function ResultsContent() {
         if (ticketsData.success) {
           ticketsData.data.forEach((ticket: Ticket) => {
             tickets[ticket.id] = ticket;
+          });
+        }
+
+        const offices: Record<string, Office> = {};
+        if (officesData.success) {
+          officesData.data.forEach((office: Office) => {
+            offices[office.id] = office;
           });
         }
 
@@ -157,8 +170,9 @@ function ResultsContent() {
             ? ballotQuestionsData.data
             : [],
           parties,
-          contestants,
+          candidates,
           tickets,
+          offices,
         });
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
@@ -222,8 +236,9 @@ function ResultsContent() {
     contests,
     ballotQuestions,
     parties,
-    contestants,
+    candidates,
     tickets,
+    offices,
   } = electionData;
 
   return (
@@ -257,6 +272,49 @@ function ResultsContent() {
               <Typography variant="h5" component="h2" gutterBottom>
                 {election.name}
               </Typography>
+
+              {/* Office Information */}
+              {election.officeId && offices[election.officeId] && (
+                <Box sx={{ mb: 2, p: 2, bgcolor: '#f5f5f5', borderRadius: 1 }}>
+                  <Typography variant="h6" color="primary" gutterBottom>
+                    Office: {offices[election.officeId].name}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {offices[election.officeId].description}
+                  </Typography>
+                  <Box
+                    sx={{ mt: 1, display: 'flex', gap: 1, flexWrap: 'wrap' }}
+                  >
+                    <Chip
+                      label={
+                        offices[election.officeId].isElected
+                          ? 'Elected Position'
+                          : 'Appointed Position'
+                      }
+                      color="primary"
+                      variant="outlined"
+                      size="small"
+                    />
+                    {offices[election.officeId].termLength && (
+                      <Chip
+                        label={`${offices[election.officeId].termLength} year term`}
+                        color="secondary"
+                        variant="outlined"
+                        size="small"
+                      />
+                    )}
+                    {offices[election.officeId].maxTerms && (
+                      <Chip
+                        label={`Max ${offices[election.officeId].maxTerms} terms`}
+                        color="default"
+                        variant="outlined"
+                        size="small"
+                      />
+                    )}
+                  </Box>
+                </Box>
+              )}
+
               <Typography variant="body2" color="text.secondary" gutterBottom>
                 {new Date(election.date).toLocaleDateString()} •{' '}
                 {election.stage}
@@ -278,7 +336,7 @@ function ResultsContent() {
                     <HorizontalBarChart
                       contestResult={contestResult}
                       parties={parties}
-                      contestants={contestants}
+                      candidates={candidates}
                       tickets={tickets}
                       getColorForResult={getColorForResult}
                       formatNumber={formatNumber}
@@ -432,7 +490,7 @@ function ResultsContent() {
                 }}
               >
                 <Typography variant="body2" color="text.secondary">
-                  Total votes: {formatNumber(results.totalVotes)}
+                  Total ballots: {formatNumber(results.totalVotes)}
                 </Typography>
                 <Chip
                   label={`${results.reportingPercentage}% Reporting`}

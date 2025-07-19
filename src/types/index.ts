@@ -21,7 +21,7 @@ export interface Party {
   color: string;
 }
 
-export interface Contestant {
+export interface Candidate {
   id: string;
   name: string;
   partyId?: string;
@@ -31,10 +31,20 @@ export interface Contestant {
 export interface Ticket {
   id: string;
   partyId?: string;
-  contestants: Contestant[];
+  candidates: Candidate[];
 }
 
 // Election Models
+export interface Office {
+  id: string;
+  name: string;
+  description: string;
+  jurisdictionId: string;
+  isElected: boolean; // true for elected positions, false for appointed
+  termLength?: number; // in years
+  maxTerms?: number; // maximum number of consecutive terms, undefined for no limit
+}
+
 export type ElectionStage =
   | 'Just Shopping'
   | 'Extremely Buttery Party Primary'
@@ -47,6 +57,7 @@ export interface Election {
   date: string;
   stage: ElectionStage;
   jurisdictionId: string;
+  officeId?: string; // Connect to Office
   status: 'upcoming' | 'ongoing' | 'completed';
 }
 
@@ -56,9 +67,9 @@ export interface Contest {
   jurisdictionId: string;
   name: string;
   isPartisan: boolean;
-  isTicketBased: boolean; // true for tickets, false for single contestants
+  isTicketBased: boolean; // true for tickets, false for single candidates
   tickets?: Ticket[];
-  contestants?: Contestant[];
+  candidates?: Candidate[];
 }
 
 export interface BallotQuestion {
@@ -80,7 +91,7 @@ export interface ContestResult {
   totalVotes: number;
   results: Array<{
     ticketId?: string;
-    contestantId?: string;
+    candidateId?: string;
     votes: number;
     percentage: number;
     winner: boolean;
