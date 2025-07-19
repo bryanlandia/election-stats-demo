@@ -5,7 +5,7 @@ import { NextResponse } from 'next/server';
 export async function GET() {
   try {
     const contestants = Object.values(mockContestants);
-    
+
     const response: ApiResponse<Contestant[]> = {
       success: true,
       data: contestants,

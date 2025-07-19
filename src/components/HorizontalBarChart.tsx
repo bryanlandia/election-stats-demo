@@ -20,6 +20,12 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
   getColorForResult,
   formatNumber,
 }) => {
+  // Helper function to extract last name from full name
+  const getLastName = (fullName: string): string => {
+    const nameParts = fullName.trim().split(' ');
+    return nameParts[nameParts.length - 1];
+  };
+
   // Sort results by vote count (descending)
   const sortedResults = [...contestResult.results].sort(
     (a, b) => b.votes - a.votes
@@ -29,7 +35,7 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
   const maxVotes = Math.max(...contestResult.results.map((r) => r.votes));
 
   const chartHeight = sortedResults.length * 70 + 40; // 70px per bar + padding
-  const chartWidth = 600;
+  const chartWidth = 900; // Increased from 600 to utilize full width without sidebar
   const leftMargin = 160; // Space for candidate names
   const rightMargin = 40;
   const barHeight = 45;
@@ -85,12 +91,16 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
           {/* Bars and labels */}
           {sortedResults.map((result, index) => {
             let displayName = '';
+            let fullName = '';
             let party: Party | undefined;
             let partyAbbrev = '';
 
             if (result.ticketId && tickets[result.ticketId]) {
               const ticket = tickets[result.ticketId];
-              displayName = ticket.contestants.map((c) => c.name).join(' & ');
+              displayName = ticket.contestants
+                .map((c) => getLastName(c.name))
+                .join(' & ');
+              fullName = ticket.contestants.map((c) => c.name).join(' & ');
               party = ticket.partyId ? parties[ticket.partyId] : undefined;
               partyAbbrev = party ? ` (${party.name.charAt(0)})` : '';
             } else if (
@@ -98,7 +108,8 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
               contestants[result.contestantId]
             ) {
               const contestant = contestants[result.contestantId];
-              displayName = contestant.name;
+              displayName = getLastName(contestant.name);
+              fullName = contestant.name;
               party = contestant.partyId
                 ? parties[contestant.partyId]
                 : undefined;
@@ -121,6 +132,7 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
                   fontWeight={isWinner ? 'bold' : 'normal'}
                   fill="#333"
                 >
+                  <title>{fullName}</title>
                   {displayName.length > 20
                     ? `${displayName.substring(0, 20)}...`
                     : displayName}
@@ -135,6 +147,7 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
                     fontSize="11"
                     fill="#666"
                   >
+                    <title>{party?.name}</title>
                     {partyAbbrev}
                   </text>
                 )}
@@ -248,15 +261,20 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
               .filter((r) => r.disqualified)
               .map((r) => {
                 let displayName = '';
+                let fullName = '';
                 if (r.ticketId && tickets[r.ticketId]) {
                   displayName = tickets[r.ticketId].contestants
+                    .map((c) => getLastName(c.name))
+                    .join(' & ');
+                  fullName = tickets[r.ticketId].contestants
                     .map((c) => c.name)
                     .join(' & ');
                 } else if (r.contestantId && contestants[r.contestantId]) {
-                  displayName = contestants[r.contestantId].name;
+                  displayName = getLastName(contestants[r.contestantId].name);
+                  fullName = contestants[r.contestantId].name;
                 }
                 return (
-                  <span key={r.ticketId || r.contestantId}>
+                  <span key={r.ticketId || r.contestantId} title={fullName}>
                     {' • '}
                     {displayName}: {r.disqualificationReason}
                   </span>

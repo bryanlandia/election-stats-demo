@@ -5,7 +5,7 @@ import { NextResponse } from 'next/server';
 export async function GET() {
   try {
     const parties = Object.values(mockParties);
-    
+
     const response: ApiResponse<Party[]> = {
       success: true,
       data: parties,
