@@ -264,7 +264,7 @@ export default function HomePage() {
               <Box
                 sx={{
                   display: 'flex',
-                justifyContent: 'center',
+                  justifyContent: 'center',
                   gap: 2,
                   mt: 2,
                 }}

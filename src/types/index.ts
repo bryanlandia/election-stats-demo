@@ -106,30 +106,6 @@ export interface ElectionResult {
   }>;
 }
 
-// Legacy interfaces for backward compatibility
-export interface Candidate {
-  id: string;
-  name: string;
-  party: string;
-  votes: number;
-  percentage: number;
-  color?: string;
-}
-
-export interface DemographicData {
-  category: string;
-  subcategory: string;
-  votes: number;
-  percentage: number;
-}
-
-export interface VotingTrend {
-  year: number;
-  turnout: number;
-  totalEligibleVoters: number;
-  totalVotes: number;
-}
-
 export interface ApiResponse<T> {
   data: T;
   success: boolean;
