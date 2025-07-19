@@ -25,8 +25,16 @@ describe('HomePage', () => {
   });
 
   it('renders the main heading', async () => {
-    // Mock all 7 API calls to avoid API call issues (now includes question-types)
+    // Mock all 9 API calls to avoid API call issues (now includes parties and tickets)
     mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ success: true, data: [] }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ success: true, data: [] }),
+      } as Response)
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({ success: true, data: [] }),
@@ -69,7 +77,7 @@ describe('HomePage', () => {
     });
   });
 
-  it('renders search form with tabs', async () => {
+  it('renders search form with mode toggle', async () => {
     // Mock all 7 API calls
     mockFetch
       .mockResolvedValueOnce({
@@ -110,16 +118,18 @@ describe('HomePage', () => {
       screen.getByRole('heading', { name: /search by/i })
     ).toBeInTheDocument();
 
-    // Check for the tabs
+    // Check for the mode toggle tabs (only year range and election dates)
     expect(
       screen.getByRole('tab', { name: /year range/i })
     ).toBeInTheDocument();
     expect(
       screen.getByRole('tab', { name: /election dates/i })
     ).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: /contests/i })).toBeInTheDocument();
+
+    // Check that contest and ballot question filters are visible (enabled by default)
+    expect(screen.getByText(/search for contests/i)).toBeInTheDocument();
     expect(
-      screen.getByRole('tab', { name: /ballot questions/i })
+      screen.getByText(/search for ballot questions/i)
     ).toBeInTheDocument();
 
     // Wait for loading to complete
@@ -231,7 +241,7 @@ describe('HomePage', () => {
       },
     ];
 
-    // Mock all 7 API calls that the component makes (now includes question-types)
+    // Mock all 9 API calls that the component makes initially, plus results calls
     mockFetch
       .mockResolvedValueOnce({
         ok: true,
@@ -260,6 +270,27 @@ describe('HomePage', () => {
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({ success: true, data: [] }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ success: true, data: [] }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ success: true, data: [] }),
+      } as Response)
+      // Mock results calls for each election
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          success: true,
+          data: {
+            contestResults: [],
+            ballotQuestionResults: [],
+            totalVotes: 1000,
+            reportingPercentage: 100,
+          },
+        }),
       } as Response);
 
     await act(async () => {
@@ -278,10 +309,10 @@ describe('HomePage', () => {
       expect(screen.getByText('Partisan')).toBeInTheDocument();
     });
 
-    // Check that the View Results button appears
+    // Check that the contest card shows election information and results
     await waitFor(() => {
       expect(
-        screen.getByRole('link', { name: /view results/i })
+        screen.getByText('God-Emperor of the United States')
       ).toBeInTheDocument();
     });
   });
