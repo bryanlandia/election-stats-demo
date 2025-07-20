@@ -1,11 +1,6 @@
 'use client';
 
-import {
-  AppBar,
-  Container,
-  Toolbar,
-  Typography
-} from '@mui/material';
+import { AppBar, Container, Toolbar, Typography } from '@mui/material';
 import Link from 'next/link';
 
 interface HeaderProps {
@@ -31,7 +26,6 @@ export default function Header({ title = 'Election Stats' }: HeaderProps) {
           >
             {title}
           </Typography>
-
         </Toolbar>
       </Container>
     </AppBar>
