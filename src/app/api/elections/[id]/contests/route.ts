@@ -1,12 +1,13 @@
-import { NextResponse } from 'next/server';
 import { mockContests } from '@/lib/mockData';
+import { NextResponse } from 'next/server';
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const electionId = params.id;
+    const { id } = await params;
+    const electionId = id;
     const contests = Object.values(mockContests).filter(
       (contest) => contest.electionId === electionId
     );

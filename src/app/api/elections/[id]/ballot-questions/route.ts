@@ -1,12 +1,13 @@
-import { NextResponse } from 'next/server';
 import { mockBallotQuestions } from '@/lib/mockData';
+import { NextResponse } from 'next/server';
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const electionId = params.id;
+    const { id } = await params;
+    const electionId = id;
     const ballotQuestions = Object.values(mockBallotQuestions).filter(
       (question) => question.electionId === electionId
     );
