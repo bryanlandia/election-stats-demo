@@ -297,10 +297,10 @@ describe('HomePage', () => {
       renderWithTheme(<HomePage />);
     });
 
-    // Wait for contests to load and check if the contests section appears
+    // Wait for results to load and check if the results section appears
     await waitFor(() => {
       expect(
-        screen.getByRole('heading', { name: /contests \(\d+\)/i })
+        screen.getByRole('heading', { name: /results \(\d+\)/i })
       ).toBeInTheDocument();
     });
 

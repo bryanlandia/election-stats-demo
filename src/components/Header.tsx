@@ -1,13 +1,10 @@
 'use client';
 
-import React from 'react';
 import {
   AppBar,
-  Toolbar,
-  Typography,
-  Button,
-  Box,
   Container,
+  Toolbar,
+  Typography
 } from '@mui/material';
 import Link from 'next/link';
 
@@ -35,22 +32,6 @@ export default function Header({ title = 'Election Stats' }: HeaderProps) {
             {title}
           </Typography>
 
-          <Box sx={{ flexGrow: 1, display: 'flex', ml: 2 }}>
-            <Button
-              component={Link}
-              href="/"
-              sx={{ color: 'white', display: 'block' }}
-            >
-              Home
-            </Button>
-            <Button
-              component={Link}
-              href="/results"
-              sx={{ color: 'white', display: 'block' }}
-            >
-              Results
-            </Button>
-          </Box>
         </Toolbar>
       </Container>
     </AppBar>
