@@ -578,9 +578,6 @@ export default function HomePage() {
           mb: 6,
         }}
       >
-        <Typography variant="h1" component="h1" gutterBottom>
-          Election Stats
-        </Typography>
         <Typography
           variant="h6"
           sx={{
