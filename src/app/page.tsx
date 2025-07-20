@@ -891,6 +891,12 @@ export default function HomePage() {
                   {(() => {
                     const combinedResults = getCombinedResults();
                     const totalCount = combinedResults.length;
+                    const contestCount = combinedResults.filter(
+                      (result) => result.type === 'contest'
+                    ).length;
+                    const ballotQuestionCount = combinedResults.filter(
+                      (result) => result.type === 'ballotQuestion'
+                    ).length;
 
                     if (totalCount === 0) {
                       return (
@@ -910,7 +916,13 @@ export default function HomePage() {
                           gutterBottom
                           sx={{ mb: 3 }}
                         >
-                          Results ({totalCount})
+                          {contestCount > 0 && ballotQuestionCount > 0
+                            ? `${totalCount} Contests and Ballot Questions`
+                            : contestCount > 0
+                              ? `${contestCount} Contests`
+                              : ballotQuestionCount > 0
+                                ? `${ballotQuestionCount} Ballot Questions`
+                                : ''}
                         </Typography>
 
                         <Grid container spacing={3}>
