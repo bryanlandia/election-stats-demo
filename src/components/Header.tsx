@@ -9,7 +9,7 @@ interface HeaderProps {
 }
 
 export default function Header({
-  title = 'State of New Crampshire Election Stats',
+  title = 'State of New Crmpshire Election Stats',
 }: HeaderProps) {
   return (
     <Box sx={{ position: 'relative' }}>
@@ -35,7 +35,7 @@ export default function Header({
         </Container>
       </AppBar>
 
-      {/* New Crampshire Seal - overlaid on top left */}
+      {/* New Crmpshire Seal - overlaid on top left */}
       <Box
         sx={{
           position: 'absolute',
@@ -53,7 +53,7 @@ export default function Header({
       >
         <Image
           src="/img/seal_of_new_crampshire.jpg"
-          alt="Seal of New Crampshire"
+          alt="Seal of New Crmpshire"
           width={164}
           height={164}
           priority
