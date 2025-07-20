@@ -12,7 +12,7 @@ export async function GET() {
     };
 
     return NextResponse.json(response);
-  } catch (error) {
+  } catch (_error) {
     const response: ApiResponse<null> = {
       success: false,
       message: 'Failed to fetch candidates',

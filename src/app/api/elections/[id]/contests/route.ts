@@ -16,7 +16,7 @@ export async function GET(
       success: true,
       data: contests,
     });
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { success: false, message: 'Failed to fetch contests' },
       { status: 500 }

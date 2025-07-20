@@ -11,7 +11,7 @@ export async function GET(): Promise<NextResponse<ApiResponse<Contest[]>>> {
       data: contests,
       message: `Found ${contests.length} contests`,
     });
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       {
         success: false,

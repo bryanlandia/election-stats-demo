@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server';
 import { mockElections } from '@/lib/mockData';
+import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
@@ -7,7 +7,7 @@ export async function GET() {
       success: true,
       data: Object.values(mockElections),
     });
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { success: false, message: 'Failed to fetch elections' },
       { status: 500 }

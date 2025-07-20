@@ -13,7 +13,7 @@ export async function GET(): Promise<
       data: ballotQuestions,
       message: `Found ${ballotQuestions.length} ballot questions`,
     });
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       {
         success: false,

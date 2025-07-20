@@ -227,7 +227,7 @@ export default function HomePage() {
         } else {
           setError(electionsData.message || 'Failed to fetch elections');
         }
-      } catch (err) {
+      } catch (_err) {
         setError('Failed to fetch election data');
       } finally {
         setLoading(false);

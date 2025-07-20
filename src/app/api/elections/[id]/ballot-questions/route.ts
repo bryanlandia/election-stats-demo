@@ -16,7 +16,7 @@ export async function GET(
       success: true,
       data: ballotQuestions,
     });
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { success: false, message: 'Failed to fetch ballot questions' },
       { status: 500 }
