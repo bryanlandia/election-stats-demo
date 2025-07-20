@@ -30,7 +30,6 @@ import {
   Divider,
   FormControl,
   FormControlLabel,
-  Grid,
   IconButton,
   InputLabel,
   LinearProgress,
@@ -45,6 +44,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import Grid from '@mui/material/Grid2';
 import React, { useEffect, useState } from 'react';
 
 export default function HomePage() {
@@ -593,7 +593,7 @@ export default function HomePage() {
       {/* Two-Column Layout */}
       <Grid container spacing={4}>
         {/* Left Column - Search Form */}
-        <Grid item xs={12} md={3}>
+        <Grid size={{ xs: 12, md: 3 }}>
           <Paper sx={{ p: 3, position: 'sticky', top: 20 }}>
             <Typography
               variant="h5"
@@ -724,7 +724,7 @@ export default function HomePage() {
 
               {contestSearchEnabled && (
                 <Grid container spacing={2}>
-                  <Grid item xs={12}>
+                  <Grid size={12}>
                     <FormControl fullWidth>
                       <InputLabel>Office</InputLabel>
                       <Select
@@ -767,7 +767,7 @@ export default function HomePage() {
                     </FormControl>
                   </Grid>
 
-                  <Grid item xs={12}>
+                  <Grid size={12}>
                     <TextField
                       fullWidth
                       label="Search Candidates"
@@ -805,7 +805,7 @@ export default function HomePage() {
 
               {ballotQuestionSearchEnabled && (
                 <Grid container spacing={2}>
-                  <Grid item xs={12}>
+                  <Grid size={12}>
                     <FormControl fullWidth>
                       <InputLabel>Filter by Jurisdiction</InputLabel>
                       <Select
@@ -826,7 +826,7 @@ export default function HomePage() {
                     </FormControl>
                   </Grid>
 
-                  <Grid item xs={12}>
+                  <Grid size={12}>
                     <FormControl fullWidth>
                       <InputLabel>Filter by Question Type</InputLabel>
                       <Select
@@ -871,7 +871,7 @@ export default function HomePage() {
         </Grid>
 
         {/* Right Column - Results Grid */}
-        <Grid item xs={12} md={9}>
+        <Grid size={{ xs: 12, md: 9 }}>
           {loading && (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
               <CircularProgress />
@@ -971,10 +971,7 @@ export default function HomePage() {
 
                               return (
                                 <Grid
-                                  item
-                                  xs={12}
-                                  md={6}
-                                  xl={4}
+                                  size={{ xs: 12, md: 6, xl: 4 }}
                                   key={`contest-${contest.id}`}
                                 >
                                   <Card
@@ -1184,10 +1181,7 @@ export default function HomePage() {
 
                               return (
                                 <Grid
-                                  item
-                                  xs={12}
-                                  md={6}
-                                  xl={4}
+                                  size={{ xs: 12, md: 6, xl: 4 }}
                                   key={`question-${question.id}`}
                                 >
                                   <Card
