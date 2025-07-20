@@ -67,7 +67,7 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchMode, setSearchMode] = useState<'year' | 'election'>('year');
-  const [yearRange, setYearRange] = useState<number[]>([2024, 2025]);
+  const [yearRange, setYearRange] = useState<number[]>([2023, 2025]);
   const [selectedElection, setSelectedElection] = useState<string>('all');
 
   // Contest search filters
