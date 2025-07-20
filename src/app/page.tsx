@@ -16,8 +16,8 @@ import {
 } from '@/types';
 import {
   FilterList as FilterListIcon,
+  InfoOutlined as InfoIcon,
   Search as SearchIcon,
-  HowToVote as VoteIcon,
 } from '@mui/icons-material';
 import {
   Alert,
@@ -31,6 +31,7 @@ import {
   FormControl,
   FormControlLabel,
   Grid,
+  IconButton,
   InputLabel,
   LinearProgress,
   MenuItem,
@@ -79,6 +80,32 @@ export default function HomePage() {
     useState(true);
   const [selectedJurisdiction, setSelectedJurisdiction] = useState<string>('');
   const [selectedQuestionType, setSelectedQuestionType] = useState<string>('');
+
+  // Office header toggle state for each contest
+  const [officeHeaderExpanded, setOfficeHeaderExpanded] = useState<
+    Record<string, boolean>
+  >({});
+
+  // Ballot question extended text toggle state
+  const [ballotQuestionExpanded, setBallotQuestionExpanded] = useState<
+    Record<string, boolean>
+  >({});
+
+  // Function to toggle office header
+  const toggleOfficeHeader = (contestId: string) => {
+    setOfficeHeaderExpanded((prev) => ({
+      ...prev,
+      [contestId]: !prev[contestId],
+    }));
+  };
+
+  // Function to toggle ballot question extended text
+  const toggleBallotQuestion = (questionId: string) => {
+    setBallotQuestionExpanded((prev) => ({
+      ...prev,
+      [questionId]: !prev[questionId],
+    }));
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -496,6 +523,53 @@ export default function HomePage() {
     }, {});
   };
 
+  // Helper function to combine and sort all results by date descending
+  const getCombinedResults = () => {
+    type CombinedResult = {
+      type: 'contest' | 'ballotQuestion';
+      item: Contest | BallotQuestion;
+      election?: Election;
+      date: string;
+    };
+
+    const combinedResults: CombinedResult[] = [];
+
+    // Add contests if enabled
+    if (contestSearchEnabled) {
+      filteredContests.forEach((contest) => {
+        const election = elections.find((e) => e.id === contest.electionId);
+        if (election) {
+          combinedResults.push({
+            type: 'contest',
+            item: contest,
+            election,
+            date: election.date,
+          });
+        }
+      });
+    }
+
+    // Add ballot questions if enabled
+    if (ballotQuestionSearchEnabled) {
+      filteredBallotQuestions.forEach((question) => {
+        const election = elections.find((e) => e.id === question.electionId);
+        if (election) {
+          combinedResults.push({
+            type: 'ballotQuestion',
+            item: question,
+            election,
+            date: election.date,
+          });
+        }
+      });
+    }
+
+    // Sort by date descending (newest first)
+    return combinedResults.sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+  };
+
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
       <Box
@@ -522,7 +596,7 @@ export default function HomePage() {
       {/* Two-Column Layout */}
       <Grid container spacing={4}>
         {/* Left Column - Search Form */}
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={3}>
           <Paper sx={{ p: 3, position: 'sticky', top: 20 }}>
             <Typography
               variant="h5"
@@ -800,7 +874,7 @@ export default function HomePage() {
         </Grid>
 
         {/* Right Column - Results Grid */}
-        <Grid item xs={12} md={8}>
+        <Grid item xs={12} md={9}>
           {loading && (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
               <CircularProgress />
@@ -815,526 +889,604 @@ export default function HomePage() {
 
           {!loading && !error && (
             <Box>
-              {/* Show contests when contest search is enabled */}
-              {contestSearchEnabled && (
-                <Box sx={{ mb: 6 }}>
-                  <Typography
-                    variant="h4"
-                    component="h2"
-                    gutterBottom
-                    sx={{ mb: 3 }}
-                  >
-                    Contests ({filteredContests.length})
-                  </Typography>
-
-                  <Grid container spacing={3}>
-                    {filteredContests.map((contest) => {
-                      const election = elections.find(
-                        (e) => e.id === contest.electionId
-                      );
-                      const office = offices.find(
-                        (o) => o.id === election?.officeId
-                      );
-                      const jurisdiction = jurisdictions.find(
-                        (j) => j.id === contest.jurisdictionId
-                      );
-                      const electionResult = election
-                        ? electionResults[election.id]
-                        : null;
-                      const contestResult =
-                        electionResult?.contestResults?.find(
-                          (cr) => cr.contestId === contest.id
-                        );
-
-                      // Create lookup objects for the chart component
-                      const partiesLookup = parties.reduce(
-                        (acc, party) => {
-                          acc[party.id] = party;
-                          return acc;
-                        },
-                        {} as Record<string, Party>
-                      );
-
-                      const candidatesLookup = candidates.reduce(
-                        (acc, candidate) => {
-                          acc[candidate.id] = candidate;
-                          return acc;
-                        },
-                        {} as Record<string, Candidate>
-                      );
-
-                      const ticketsLookup = tickets.reduce(
-                        (acc, ticket) => {
-                          acc[ticket.id] = ticket;
-                          return acc;
-                        },
-                        {} as Record<string, Ticket>
-                      );
-
-                      return (
-                        <Grid item xs={12} lg={6} key={contest.id}>
-                          <Card
-                            sx={{
-                              height: '100%',
-                              display: 'flex',
-                              flexDirection: 'column',
-                              transition: 'transform 0.2s, box-shadow 0.2s',
-                              '&:hover': {
-                                transform: 'translateY(-2px)',
-                                boxShadow: 3,
-                              },
-                            }}
-                          >
-                            <CardContent sx={{ flexGrow: 1 }}>
-                              {/* Extended Office Header */}
-                              {office && (
-                                <Box
-                                  sx={{
-                                    mb: 3,
-                                    p: 2,
-                                    bgcolor: '#f5f5f5',
-                                    borderRadius: 1,
-                                  }}
-                                >
-                                  <Typography
-                                    variant="h6"
-                                    color="primary"
-                                    gutterBottom
-                                  >
-                                    Office: {office.name}
-                                  </Typography>
-                                  <Typography
-                                    variant="body2"
-                                    color="text.secondary"
-                                    sx={{ mb: 2 }}
-                                  >
-                                    {office.description}
-                                  </Typography>
-                                  <Box
-                                    sx={{
-                                      display: 'flex',
-                                      gap: 1,
-                                      flexWrap: 'wrap',
-                                    }}
-                                  >
-                                    <Chip
-                                      label={
-                                        office.isElected
-                                          ? 'Elected Position'
-                                          : 'Appointed Position'
-                                      }
-                                      color="primary"
-                                      variant="outlined"
-                                      size="small"
-                                    />
-                                    {office.termLength && (
-                                      <Chip
-                                        label={`${office.termLength} year term`}
-                                        color="secondary"
-                                        variant="outlined"
-                                        size="small"
-                                      />
-                                    )}
-                                    {office.maxTerms && (
-                                      <Chip
-                                        label={`Max ${office.maxTerms} terms`}
-                                        color="default"
-                                        variant="outlined"
-                                        size="small"
-                                      />
-                                    )}
-                                  </Box>
-                                </Box>
-                              )}
-
-                              <Box
-                                sx={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  mb: 2,
-                                }}
-                              >
-                                <VoteIcon
-                                  sx={{ mr: 1, color: 'primary.main' }}
-                                />
-                                <Chip
-                                  label={
-                                    contest.isPartisan
-                                      ? 'Partisan'
-                                      : 'Non-partisan'
-                                  }
-                                  color={
-                                    contest.isPartisan ? 'primary' : 'default'
-                                  }
-                                  size="small"
-                                />
-                                <Typography
-                                  variant="body2"
-                                  color="text.secondary"
-                                  sx={{ ml: 2 }}
-                                >
-                                  {election?.name} •{' '}
-                                  {election?.date &&
-                                    new Date(
-                                      election.date
-                                    ).toLocaleDateString()}
-                                </Typography>
-                              </Box>
-
-                              <Typography
-                                variant="h6"
-                                component="h3"
-                                gutterBottom
-                              >
-                                {contest.name}
-                              </Typography>
-
-                              <Typography
-                                variant="body2"
-                                color="text.secondary"
-                                gutterBottom
-                              >
-                                <strong>Jurisdiction:</strong>{' '}
-                                {jurisdiction?.name || 'Unknown'}
-                              </Typography>
-
-                              <Typography
-                                variant="body2"
-                                color="text.secondary"
-                                sx={{ mb: 3 }}
-                              >
-                                <strong>Type:</strong>{' '}
-                                {contest.isTicketBased
-                                  ? 'Ticket-based'
-                                  : 'Individual Candidates'}
-                              </Typography>
-
-                              {/* Horizontal Bar Chart */}
-                              {contestResult ? (
-                                <HorizontalBarChart
-                                  contestResult={contestResult}
-                                  parties={partiesLookup}
-                                  candidates={candidatesLookup}
-                                  tickets={ticketsLookup}
-                                  getColorForResult={getColorForResult}
-                                  formatNumber={formatNumber}
-                                />
-                              ) : (
-                                <Box
-                                  sx={{
-                                    p: 3,
-                                    textAlign: 'center',
-                                    bgcolor: '#f5f5f5',
-                                    borderRadius: 1,
-                                  }}
-                                >
-                                  <Typography
-                                    variant="body2"
-                                    color="text.secondary"
-                                  >
-                                    No results data available for this contest
-                                  </Typography>
-                                </Box>
-                              )}
-                            </CardContent>
-                          </Card>
-                        </Grid>
-                      );
-                    })}
-                  </Grid>
-
-                  {filteredContests.length === 0 && (
-                    <Box sx={{ textAlign: 'center', py: 4 }}>
-                      <Typography variant="h6" color="text.secondary">
-                        No contests found for the selected criteria.
-                      </Typography>
-                    </Box>
-                  )}
-                </Box>
-              )}
-
-              {/* Show ballot questions when ballot question search is enabled */}
-              {ballotQuestionSearchEnabled && (
+              {(contestSearchEnabled || ballotQuestionSearchEnabled) && (
                 <Box>
-                  <Typography
-                    variant="h4"
-                    component="h2"
-                    gutterBottom
-                    sx={{ mb: 3 }}
-                  >
-                    Ballot Questions ({filteredBallotQuestions.length})
-                  </Typography>
+                  {(() => {
+                    const combinedResults = getCombinedResults();
+                    const totalCount = combinedResults.length;
 
-                  <Grid container spacing={3}>
-                    {filteredBallotQuestions.map((question) => {
-                      const election = elections.find(
-                        (e) => e.id === question.electionId
-                      );
-                      const jurisdiction = jurisdictions.find(
-                        (j) => j.id === question.jurisdictionId
-                      );
-                      const questionType = questionTypes.find(
-                        (qt) => qt.id === question.questionTypeId
-                      );
-                      const electionResult = election
-                        ? electionResults[election.id]
-                        : null;
-                      const ballotResult =
-                        electionResult?.ballotQuestionResults?.find(
-                          (br) => br.ballotQuestionId === question.id
-                        );
-
+                    if (totalCount === 0) {
                       return (
-                        <Grid item xs={12} lg={6} key={question.id}>
-                          <Card
-                            sx={{
-                              height: '100%',
-                              display: 'flex',
-                              flexDirection: 'column',
-                              transition: 'transform 0.2s, box-shadow 0.2s',
-                              '&:hover': {
-                                transform: 'translateY(-2px)',
-                                boxShadow: 3,
-                              },
-                            }}
-                          >
-                            <CardContent sx={{ flexGrow: 1 }}>
-                              <Box
-                                sx={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  mb: 2,
-                                }}
-                              >
-                                <VoteIcon
-                                  sx={{ mr: 1, color: 'primary.main' }}
-                                />
-                                <Chip
-                                  label={question.passed ? 'Passed' : 'Failed'}
-                                  color={question.passed ? 'success' : 'error'}
-                                  size="small"
-                                />
-                                <Typography
-                                  variant="body2"
-                                  color="text.secondary"
-                                  sx={{ ml: 2 }}
-                                >
-                                  {election?.name} •{' '}
-                                  {election?.date &&
-                                    new Date(
-                                      election.date
-                                    ).toLocaleDateString()}
-                                </Typography>
-                              </Box>
-
-                              <Typography
-                                variant="h6"
-                                component="h3"
-                                gutterBottom
-                              >
-                                {question.shortTitle}
-                              </Typography>
-
-                              <Typography
-                                variant="body2"
-                                color="text.secondary"
-                                gutterBottom
-                                sx={{
-                                  display: '-webkit-box',
-                                  WebkitLineClamp: 3,
-                                  WebkitBoxOrient: 'vertical',
-                                  overflow: 'hidden',
-                                  mb: 2,
-                                }}
-                              >
-                                {question.extendedText}
-                              </Typography>
-
-                              <Typography
-                                variant="body2"
-                                color="text.secondary"
-                                gutterBottom
-                              >
-                                <strong>Type:</strong>{' '}
-                                {questionType?.name || 'Unknown'}
-                              </Typography>
-
-                              <Typography
-                                variant="body2"
-                                color="text.secondary"
-                                sx={{ mb: 3 }}
-                              >
-                                <strong>Jurisdiction:</strong>{' '}
-                                {jurisdiction?.name || 'Unknown'}
-                              </Typography>
-
-                              {/* Ballot Question Results Chart */}
-                              {ballotResult ? (
-                                <Box sx={{ mb: 3 }}>
-                                  <Paper
-                                    sx={{
-                                      p: 2,
-                                      mb: 2,
-                                      backgroundColor: ballotResult.passed
-                                        ? '#4caf5015'
-                                        : '#f4433615',
-                                      border: ballotResult.passed
-                                        ? '1px solid #4caf5040'
-                                        : '1px solid #f4433640',
-                                    }}
-                                  >
-                                    <Box
-                                      sx={{
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center',
-                                      }}
-                                    >
-                                      <Box>
-                                        <Typography
-                                          variant="h6"
-                                          color={
-                                            ballotResult.passed
-                                              ? 'success.main'
-                                              : 'error.main'
-                                          }
-                                        >
-                                          Yes {ballotResult.passed ? '✓' : ''}
-                                        </Typography>
-                                        <Typography
-                                          variant="body2"
-                                          color="text.secondary"
-                                        >
-                                          {formatNumber(ballotResult.yesVotes)}{' '}
-                                          votes
-                                        </Typography>
-                                      </Box>
-                                      <Typography
-                                        variant="h4"
-                                        color={
-                                          ballotResult.passed
-                                            ? 'success.main'
-                                            : 'text.primary'
-                                        }
-                                      >
-                                        {ballotResult.yesPercentage}%
-                                      </Typography>
-                                    </Box>
-                                    <LinearProgress
-                                      variant="determinate"
-                                      value={ballotResult.yesPercentage}
-                                      sx={{
-                                        mt: 1,
-                                        height: 8,
-                                        borderRadius: 4,
-                                        '& .MuiLinearProgress-bar': {
-                                          backgroundColor: '#4caf50',
-                                        },
-                                      }}
-                                    />
-                                  </Paper>
-
-                                  <Paper
-                                    sx={{
-                                      p: 2,
-                                      backgroundColor: !ballotResult.passed
-                                        ? '#f4433615'
-                                        : 'background.paper',
-                                      border: '1px solid #f4433640',
-                                    }}
-                                  >
-                                    <Box
-                                      sx={{
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center',
-                                      }}
-                                    >
-                                      <Box>
-                                        <Typography
-                                          variant="h6"
-                                          color="error.main"
-                                        >
-                                          No {!ballotResult.passed ? '✓' : ''}
-                                        </Typography>
-                                        <Typography
-                                          variant="body2"
-                                          color="text.secondary"
-                                        >
-                                          {formatNumber(ballotResult.noVotes)}{' '}
-                                          votes
-                                        </Typography>
-                                      </Box>
-                                      <Typography
-                                        variant="h4"
-                                        color={
-                                          !ballotResult.passed
-                                            ? 'error.main'
-                                            : 'text.primary'
-                                        }
-                                      >
-                                        {ballotResult.noPercentage}%
-                                      </Typography>
-                                    </Box>
-                                    <LinearProgress
-                                      variant="determinate"
-                                      value={ballotResult.noPercentage}
-                                      sx={{
-                                        mt: 1,
-                                        height: 8,
-                                        borderRadius: 4,
-                                        '& .MuiLinearProgress-bar': {
-                                          backgroundColor: '#f44336',
-                                        },
-                                      }}
-                                    />
-                                  </Paper>
-
-                                  <Typography
-                                    variant="body2"
-                                    color="text.secondary"
-                                    sx={{ mt: 2, textAlign: 'center' }}
-                                  >
-                                    Result:{' '}
-                                    <strong>
-                                      {ballotResult.passed
-                                        ? 'PASSED'
-                                        : 'FAILED'}
-                                    </strong>
-                                  </Typography>
-                                </Box>
-                              ) : (
-                                <Box
-                                  sx={{
-                                    p: 3,
-                                    textAlign: 'center',
-                                    bgcolor: '#f5f5f5',
-                                    borderRadius: 1,
-                                  }}
-                                >
-                                  <Typography
-                                    variant="body2"
-                                    color="text.secondary"
-                                  >
-                                    No results data available for this ballot
-                                    question
-                                  </Typography>
-                                </Box>
-                              )}
-                            </CardContent>
-                          </Card>
-                        </Grid>
+                        <Box sx={{ textAlign: 'center', py: 4 }}>
+                          <Typography variant="h6" color="text.secondary">
+                            No results found for the selected criteria.
+                          </Typography>
+                        </Box>
                       );
-                    })}
-                  </Grid>
+                    }
 
-                  {filteredBallotQuestions.length === 0 && (
-                    <Box sx={{ textAlign: 'center', py: 4 }}>
-                      <Typography variant="h6" color="text.secondary">
-                        No ballot questions found for the selected criteria.
-                      </Typography>
-                    </Box>
-                  )}
+                    return (
+                      <>
+                        <Typography
+                          variant="h4"
+                          component="h2"
+                          gutterBottom
+                          sx={{ mb: 3 }}
+                        >
+                          Results ({totalCount})
+                        </Typography>
+
+                        <Grid container spacing={3}>
+                          {combinedResults.map((result) => {
+                            if (result.type === 'contest') {
+                              const contest = result.item as Contest;
+                              const election = result.election!;
+                              const office = offices.find(
+                                (o) => o.id === election?.officeId
+                              );
+                              const jurisdiction = jurisdictions.find(
+                                (j) => j.id === contest.jurisdictionId
+                              );
+                              const electionResult = election
+                                ? electionResults[election.id]
+                                : null;
+                              const contestResult =
+                                electionResult?.contestResults?.find(
+                                  (cr) => cr.contestId === contest.id
+                                );
+
+                              // Create lookup objects for the chart component
+                              const partiesLookup = parties.reduce(
+                                (acc, party) => {
+                                  acc[party.id] = party;
+                                  return acc;
+                                },
+                                {} as Record<string, Party>
+                              );
+
+                              const candidatesLookup = candidates.reduce(
+                                (acc, candidate) => {
+                                  acc[candidate.id] = candidate;
+                                  return acc;
+                                },
+                                {} as Record<string, Candidate>
+                              );
+
+                              const ticketsLookup = tickets.reduce(
+                                (acc, ticket) => {
+                                  acc[ticket.id] = ticket;
+                                  return acc;
+                                },
+                                {} as Record<string, Ticket>
+                              );
+
+                              return (
+                                <Grid
+                                  item
+                                  xs={12}
+                                  md={6}
+                                  xl={4}
+                                  key={`contest-${contest.id}`}
+                                >
+                                  <Card
+                                    sx={{
+                                      height: '100%',
+                                      display: 'flex',
+                                      flexDirection: 'column',
+                                      transition:
+                                        'transform 0.2s, box-shadow 0.2s',
+                                      '&:hover': {
+                                        transform: 'translateY(-2px)',
+                                        boxShadow: 3,
+                                      },
+                                    }}
+                                  >
+                                    <CardContent sx={{ flexGrow: 1 }}>
+                                      {/* Election info above title */}
+                                      <Typography
+                                        variant="caption"
+                                        color="text.secondary"
+                                        sx={{ mb: 1, display: 'block' }}
+                                      >
+                                        {election?.name} •{' '}
+                                        {election?.date &&
+                                          new Date(
+                                            election.date
+                                          ).toLocaleDateString()}
+                                        {office && ` • ${office.name}`}
+                                      </Typography>
+
+                                      {/* Contest title with info toggle */}
+                                      <Box
+                                        sx={{
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'space-between',
+                                          mb: 1,
+                                        }}
+                                      >
+                                        <Typography
+                                          variant="h6"
+                                          component="h3"
+                                          sx={{ flex: 1 }}
+                                        >
+                                          {contest.name}
+                                        </Typography>
+
+                                        {/* Compact Office Header Toggle */}
+                                        {office && (
+                                          <IconButton
+                                            size="small"
+                                            onClick={() =>
+                                              toggleOfficeHeader(contest.id)
+                                            }
+                                            sx={{
+                                              color: 'primary.main',
+                                              p: 0.5,
+                                            }}
+                                          >
+                                            <InfoIcon fontSize="small" />
+                                          </IconButton>
+                                        )}
+                                      </Box>
+
+                                      {/* Toggleable Office Header */}
+                                      {office &&
+                                        officeHeaderExpanded[contest.id] && (
+                                          <Box
+                                            sx={{
+                                              mb: 2,
+                                              p: 1.5,
+                                              bgcolor: '#f5f5f5',
+                                              borderRadius: 1,
+                                            }}
+                                          >
+                                            <Typography
+                                              variant="h6"
+                                              color="primary"
+                                              gutterBottom
+                                              sx={{ mb: 1 }}
+                                            >
+                                              Office: {office.name}
+                                            </Typography>
+                                            <Typography
+                                              variant="body2"
+                                              color="text.secondary"
+                                              sx={{ mb: 1.5 }}
+                                            >
+                                              {office.description}
+                                            </Typography>
+                                            <Box
+                                              sx={{
+                                                display: 'flex',
+                                                gap: 0.5,
+                                                flexWrap: 'wrap',
+                                              }}
+                                            >
+                                              <Chip
+                                                label={
+                                                  office.isElected
+                                                    ? 'Elected Position'
+                                                    : 'Appointed Position'
+                                                }
+                                                color="primary"
+                                                variant="outlined"
+                                                size="small"
+                                              />
+                                              {office.termLength && (
+                                                <Chip
+                                                  label={`${office.termLength} year term`}
+                                                  color="secondary"
+                                                  variant="outlined"
+                                                  size="small"
+                                                />
+                                              )}
+                                              {office.maxTerms && (
+                                                <Chip
+                                                  label={`Max ${office.maxTerms} terms`}
+                                                  color="default"
+                                                  variant="outlined"
+                                                  size="small"
+                                                />
+                                              )}
+                                            </Box>
+                                          </Box>
+                                        )}
+
+                                      <Box
+                                        sx={{
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          mb: 2,
+                                        }}
+                                      >
+                                        <Chip
+                                          label={
+                                            contest.isPartisan
+                                              ? 'Partisan'
+                                              : 'Non-partisan'
+                                          }
+                                          color={
+                                            contest.isPartisan
+                                              ? 'primary'
+                                              : 'default'
+                                          }
+                                          size="small"
+                                        />
+                                      </Box>
+
+                                      <Typography
+                                        variant="body2"
+                                        color="text.secondary"
+                                        sx={{ mb: 2 }}
+                                      >
+                                        {jurisdiction?.name || 'Unknown'}
+                                      </Typography>
+
+                                      {/* Horizontal Bar Chart */}
+                                      {contestResult ? (
+                                        <HorizontalBarChart
+                                          contestResult={contestResult}
+                                          parties={partiesLookup}
+                                          candidates={candidatesLookup}
+                                          tickets={ticketsLookup}
+                                          getColorForResult={getColorForResult}
+                                          formatNumber={formatNumber}
+                                        />
+                                      ) : (
+                                        <Box
+                                          sx={{
+                                            p: 3,
+                                            textAlign: 'center',
+                                            bgcolor: '#f5f5f5',
+                                            borderRadius: 1,
+                                          }}
+                                        >
+                                          <Typography
+                                            variant="body2"
+                                            color="text.secondary"
+                                          >
+                                            No results data available for this
+                                            contest
+                                          </Typography>
+                                        </Box>
+                                      )}
+                                    </CardContent>
+                                  </Card>
+                                </Grid>
+                              );
+                            } else {
+                              // Ballot Question
+                              const question = result.item as BallotQuestion;
+                              const election = result.election!;
+                              const jurisdiction = jurisdictions.find(
+                                (j) => j.id === question.jurisdictionId
+                              );
+                              const questionType = questionTypes.find(
+                                (qt) => qt.id === question.questionTypeId
+                              );
+                              const electionResult = election
+                                ? electionResults[election.id]
+                                : null;
+                              const ballotResult =
+                                electionResult?.ballotQuestionResults?.find(
+                                  (br) => br.ballotQuestionId === question.id
+                                );
+
+                              return (
+                                <Grid
+                                  item
+                                  xs={12}
+                                  md={6}
+                                  xl={4}
+                                  key={`question-${question.id}`}
+                                >
+                                  <Card
+                                    sx={{
+                                      height: '100%',
+                                      display: 'flex',
+                                      flexDirection: 'column',
+                                      transition:
+                                        'transform 0.2s, box-shadow 0.2s',
+                                      '&:hover': {
+                                        transform: 'translateY(-2px)',
+                                        boxShadow: 3,
+                                      },
+                                    }}
+                                  >
+                                    <CardContent sx={{ flexGrow: 1 }}>
+                                      {/* Election info above title */}
+                                      <Typography
+                                        variant="caption"
+                                        color="text.secondary"
+                                        sx={{ mb: 1, display: 'block' }}
+                                      >
+                                        {election?.name} •{' '}
+                                        {election?.date &&
+                                          new Date(
+                                            election.date
+                                          ).toLocaleDateString()}
+                                        {questionType &&
+                                          ` • ${questionType.name}`}
+                                      </Typography>
+
+                                      <Box
+                                        sx={{
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          mb: 2,
+                                        }}
+                                      >
+                                        <Chip
+                                          label={
+                                            question.passed
+                                              ? 'Passed'
+                                              : 'Failed'
+                                          }
+                                          color={
+                                            question.passed
+                                              ? 'success'
+                                              : 'error'
+                                          }
+                                          size="small"
+                                        />
+                                      </Box>
+
+                                      {/* Question title with info toggle */}
+                                      <Box
+                                        sx={{
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'space-between',
+                                          mb: 1,
+                                        }}
+                                      >
+                                        <Typography
+                                          variant="h6"
+                                          component="h3"
+                                          sx={{ flex: 1 }}
+                                        >
+                                          {question.shortTitle}
+                                        </Typography>
+
+                                        {/* Info Toggle for Extended Text */}
+                                        <IconButton
+                                          size="small"
+                                          onClick={() =>
+                                            toggleBallotQuestion(question.id)
+                                          }
+                                          sx={{
+                                            color: 'primary.main',
+                                            p: 0.5,
+                                          }}
+                                        >
+                                          <InfoIcon fontSize="small" />
+                                        </IconButton>
+                                      </Box>
+
+                                      {/* Toggleable Extended Text */}
+                                      {ballotQuestionExpanded[question.id] && (
+                                        <Box
+                                          sx={{
+                                            mb: 2,
+                                            p: 1.5,
+                                            bgcolor: '#f5f5f5',
+                                            borderRadius: 1,
+                                          }}
+                                        >
+                                          <Typography
+                                            variant="body2"
+                                            color="text.secondary"
+                                          >
+                                            {question.extendedText}
+                                          </Typography>
+                                        </Box>
+                                      )}
+
+                                      {/* Always show truncated text when not expanded */}
+                                      {!ballotQuestionExpanded[question.id] && (
+                                        <Typography
+                                          variant="body2"
+                                          color="text.secondary"
+                                          gutterBottom
+                                          sx={{
+                                            display: '-webkit-box',
+                                            WebkitLineClamp: 2,
+                                            WebkitBoxOrient: 'vertical',
+                                            overflow: 'hidden',
+                                            mb: 2,
+                                          }}
+                                        >
+                                          {question.extendedText}
+                                        </Typography>
+                                      )}
+
+                                      <Typography
+                                        variant="body2"
+                                        color="text.secondary"
+                                        sx={{ mb: 2 }}
+                                      >
+                                        {jurisdiction?.name || 'Unknown'}
+                                      </Typography>
+
+                                      {/* Ballot Question Results Chart */}
+                                      {ballotResult ? (
+                                        <Box sx={{ mb: 2 }}>
+                                          <Paper
+                                            sx={{
+                                              p: 1.5,
+                                              mb: 1.5,
+                                              backgroundColor:
+                                                ballotResult.passed
+                                                  ? '#4caf5015'
+                                                  : '#f4433615',
+                                              border: ballotResult.passed
+                                                ? '1px solid #4caf5040'
+                                                : '1px solid #f4433640',
+                                            }}
+                                          >
+                                            <Box
+                                              sx={{
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'center',
+                                              }}
+                                            >
+                                              <Box>
+                                                <Typography
+                                                  variant="h6"
+                                                  color={
+                                                    ballotResult.passed
+                                                      ? 'success.main'
+                                                      : 'error.main'
+                                                  }
+                                                >
+                                                  Yes{' '}
+                                                  {ballotResult.passed
+                                                    ? '✓'
+                                                    : ''}
+                                                </Typography>
+                                                <Typography
+                                                  variant="body2"
+                                                  color="text.secondary"
+                                                >
+                                                  {formatNumber(
+                                                    ballotResult.yesVotes
+                                                  )}{' '}
+                                                  votes
+                                                </Typography>
+                                              </Box>
+                                              <Typography
+                                                variant="h4"
+                                                color={
+                                                  ballotResult.passed
+                                                    ? 'success.main'
+                                                    : 'text.primary'
+                                                }
+                                              >
+                                                {ballotResult.yesPercentage}%
+                                              </Typography>
+                                            </Box>
+                                            <LinearProgress
+                                              variant="determinate"
+                                              value={ballotResult.yesPercentage}
+                                              sx={{
+                                                mt: 0.5,
+                                                height: 6,
+                                                borderRadius: 3,
+                                                '& .MuiLinearProgress-bar': {
+                                                  backgroundColor: '#4caf50',
+                                                },
+                                              }}
+                                            />
+                                          </Paper>
+
+                                          <Paper
+                                            sx={{
+                                              p: 1.5,
+                                              backgroundColor:
+                                                !ballotResult.passed
+                                                  ? '#f4433615'
+                                                  : 'background.paper',
+                                              border: '1px solid #f4433640',
+                                            }}
+                                          >
+                                            <Box
+                                              sx={{
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'center',
+                                              }}
+                                            >
+                                              <Box>
+                                                <Typography
+                                                  variant="h6"
+                                                  color="error.main"
+                                                >
+                                                  No{' '}
+                                                  {!ballotResult.passed
+                                                    ? '✓'
+                                                    : ''}
+                                                </Typography>
+                                                <Typography
+                                                  variant="body2"
+                                                  color="text.secondary"
+                                                >
+                                                  {formatNumber(
+                                                    ballotResult.noVotes
+                                                  )}{' '}
+                                                  votes
+                                                </Typography>
+                                              </Box>
+                                              <Typography
+                                                variant="h4"
+                                                color={
+                                                  !ballotResult.passed
+                                                    ? 'error.main'
+                                                    : 'text.primary'
+                                                }
+                                              >
+                                                {ballotResult.noPercentage}%
+                                              </Typography>
+                                            </Box>
+                                            <LinearProgress
+                                              variant="determinate"
+                                              value={ballotResult.noPercentage}
+                                              sx={{
+                                                mt: 0.5,
+                                                height: 6,
+                                                borderRadius: 3,
+                                                '& .MuiLinearProgress-bar': {
+                                                  backgroundColor: '#f44336',
+                                                },
+                                              }}
+                                            />
+                                          </Paper>
+
+                                          <Typography
+                                            variant="body2"
+                                            color="text.secondary"
+                                            sx={{
+                                              mt: 1.5,
+                                              textAlign: 'center',
+                                            }}
+                                          >
+                                            Result:{' '}
+                                            <strong>
+                                              {ballotResult.passed
+                                                ? 'PASSED'
+                                                : 'FAILED'}
+                                            </strong>
+                                          </Typography>
+                                        </Box>
+                                      ) : (
+                                        <Box
+                                          sx={{
+                                            p: 3,
+                                            textAlign: 'center',
+                                            bgcolor: '#f5f5f5',
+                                            borderRadius: 1,
+                                          }}
+                                        >
+                                          <Typography
+                                            variant="body2"
+                                            color="text.secondary"
+                                          >
+                                            No results data available for this
+                                            ballot question
+                                          </Typography>
+                                        </Box>
+                                      )}
+                                    </CardContent>
+                                  </Card>
+                                </Grid>
+                              );
+                            }
+                          })}
+                        </Grid>
+                      </>
+                    );
+                  })()}
                 </Box>
               )}
 

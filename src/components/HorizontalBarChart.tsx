@@ -34,16 +34,18 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
   // Find the maximum votes for scaling
   const maxVotes = Math.max(...contestResult.results.map((r) => r.votes));
 
-  const chartHeight = sortedResults.length * 70 + 40; // 70px per bar + padding
-  const chartWidth = 900; // Increased from 600 to utilize full width without sidebar
-  const leftMargin = 160; // Space for candidate names
-  const rightMargin = 40;
-  const barHeight = 45;
-  const barSpacing = 25;
+  const chartHeight = sortedResults.length * 35 + 30; // Reduced from 50px to 35px per bar
+  const chartWidth = 600; // Reduced from 900 to 600 for more compact display
+  const leftMargin = 120; // Reduced from 160 to 120
+  const rightMargin = 30; // Reduced from 40 to 30
+  const barHeight = 18; // Reduced from 32 to 18 (about half)
+  const barSpacing = 17; // Reduced from 18 to 17
   const availableWidth = chartWidth - leftMargin - rightMargin;
 
   return (
-    <Paper sx={{ p: 3, mb: 2, backgroundColor: 'background.paper' }}>
+    <Paper sx={{ p: 2, mb: 1, backgroundColor: 'background.paper' }}>
+      {' '}
+      {/* Reduced padding from 3 to 2, margin from 2 to 1 */}
       <Box sx={{ width: '100%', overflow: 'auto' }}>
         <svg
           width={chartWidth}
@@ -115,33 +117,33 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
 
             const color = getColorForResult(index, party);
             const barWidth = (result.votes / maxVotes) * availableWidth;
-            const y = 30 + index * (barHeight + barSpacing);
+            const y = 25 + index * (barHeight + barSpacing); // Reduced top padding from 30 to 25
             const isWinner = result.winner;
 
             return (
               <g key={result.ticketId || result.candidateId}>
                 {/* Candidate name */}
                 <text
-                  x={leftMargin - 10}
-                  y={y + barHeight / 2 + 2}
+                  x={leftMargin - 8} // Reduced from -10 to -8
+                  y={y + barHeight / 2 + 1} // Adjusted vertical alignment
                   textAnchor="end"
-                  fontSize="14"
+                  fontSize="13" // Reduced from 14 to 13
                   fontWeight={isWinner ? 'bold' : 'normal'}
                   fill="#333"
                 >
                   <title>{fullName}</title>
-                  {displayName.length > 20
-                    ? `${displayName.substring(0, 20)}...`
+                  {displayName.length > 16 // Reduced from 20 to 16 for tighter fit
+                    ? `${displayName.substring(0, 16)}...`
                     : displayName}
                 </text>
 
                 {/* Party abbreviation */}
                 {partyAbbrev && (
                   <text
-                    x={leftMargin - 10}
-                    y={y + barHeight / 2 + 16}
+                    x={leftMargin - 8} // Reduced from -10 to -8
+                    y={y + barHeight / 2 + 13} // Reduced spacing from 16 to 13
                     textAnchor="end"
-                    fontSize="11"
+                    fontSize="10" // Reduced from 11 to 10
                     fill="#666"
                   >
                     <title>{party?.name}</title>
@@ -174,24 +176,24 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
 
                 {/* Vote count text */}
                 <text
-                  x={leftMargin + Math.max(barWidth / 2, 30)}
-                  y={y + barHeight / 2 + 2}
+                  x={leftMargin + Math.max(barWidth / 2, 25)} // Reduced from 30 to 25
+                  y={y + barHeight / 2 + 1} // Adjusted vertical alignment
                   textAnchor="middle"
-                  fontSize="13"
+                  fontSize="12" // Reduced from 13 to 12
                   fontWeight="600"
-                  fill={barWidth > 80 ? 'white' : '#333'}
+                  fill={barWidth > 60 ? 'white' : '#333'} // Reduced threshold from 80 to 60
                 >
                   {formatNumber(result.votes)}
                 </text>
 
                 {/* Percentage text */}
                 <text
-                  x={leftMargin + Math.max(barWidth / 2, 30)}
-                  y={y + barHeight / 2 + 16}
+                  x={leftMargin + Math.max(barWidth / 2, 25)} // Reduced from 30 to 25
+                  y={y + barHeight / 2 + 12} // Reduced spacing from 16 to 12
                   textAnchor="middle"
-                  fontSize="11"
+                  fontSize="10" // Reduced from 11 to 10
                   fontWeight="500"
-                  fill={barWidth > 80 ? 'rgba(255,255,255,0.9)' : '#666'}
+                  fill={barWidth > 60 ? 'rgba(255,255,255,0.9)' : '#666'} // Reduced threshold from 80 to 60
                 >
                   {result.percentage}%
                 </text>
@@ -200,17 +202,17 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
                 {isWinner && (
                   <g>
                     <circle
-                      cx={leftMargin + barWidth - 15}
+                      cx={leftMargin + barWidth - 12} // Reduced from -15 to -12
                       cy={y + barHeight / 2}
-                      r="10"
+                      r="8" // Reduced from 10 to 8
                       fill="white"
                       stroke={color}
                       strokeWidth="2"
                     />
                     <path
-                      d={`M ${leftMargin + barWidth - 19} ${y + barHeight / 2} 
-                         L ${leftMargin + barWidth - 15} ${y + barHeight / 2 + 4} 
-                         L ${leftMargin + barWidth - 11} ${y + barHeight / 2 - 4}`}
+                      d={`M ${leftMargin + barWidth - 15} ${y + barHeight / 2} 
+                         L ${leftMargin + barWidth - 12} ${y + barHeight / 2 + 3} 
+                         L ${leftMargin + barWidth - 9} ${y + barHeight / 2 - 3}`} // Adjusted for smaller checkmark
                       stroke={color}
                       strokeWidth="2"
                       fill="none"
@@ -248,7 +250,6 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
           </text>
         </svg>
       </Box>
-
       {/* Legend for disqualified candidates */}
       {sortedResults.some((r) => r.disqualified) && (
         <Box sx={{ mt: 2, p: 2, bgcolor: '#fff3e0', borderRadius: 1 }}>
