@@ -585,8 +585,7 @@ export default function HomePage() {
             maxWidth: 600,
             mx: 'auto'
           }}>
-          Comprehensive election statistics and data visualization platform. 
-          Real-time election results and vote tracking.
+          Election stats
         </Typography>
       </Box>
 
