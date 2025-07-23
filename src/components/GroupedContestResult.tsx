@@ -29,6 +29,10 @@ interface GroupedContestResultProps {
   groupKey?: string;
 }
 
+{
+  /* TOOD: reuse some from ContestResult */
+}
+
 export const GroupedContestResult: React.FC<GroupedContestResultProps> = ({
   contests,
   elections,
@@ -43,9 +47,8 @@ export const GroupedContestResult: React.FC<GroupedContestResultProps> = ({
   getColorForResult,
   formatNumber,
 }) => {
-  const primaryElection = elections[0]; // Use first election for shared data
+  const primaryElection = elections[0]; // Just get shared data from the first of the elections
 
-  // Create info content for office details
   const infoContent = (
     <Box>
       {contests.map((contest, index) => {
@@ -110,7 +113,6 @@ export const GroupedContestResult: React.FC<GroupedContestResultProps> = ({
     </Box>
   );
 
-  // Create chart content
   const chartContent = contestResult ? (
     <HorizontalBarChart
       contestResult={contestResult}

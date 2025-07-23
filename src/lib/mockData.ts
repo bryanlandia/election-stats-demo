@@ -271,7 +271,7 @@ export const mockQuestionTypes: Record<string, QuestionType> = {
       'Amendment to the state constitution requiring supermajority approval',
     category: 'Constitutional Amendment',
     requiresSupermajority: true,
-    minimumTurnoutRequired: 50, // 50% voter turnout required
+    minimumTurnoutRequired: 50,
   },
   '2': {
     id: '2',
@@ -307,9 +307,9 @@ export const mockQuestionTypes: Record<string, QuestionType> = {
 export const mockBallotQuestions: Record<string, BallotQuestion> = {
   '1': {
     id: '1',
-    electionId: '3', // Updated to match the Dogcatcher election ID
+    electionId: '3',
     jurisdictionId: '1',
-    questionTypeId: '1', // Constitutional Amendment
+    questionTypeId: '1',
     shortTitle:
       'Shall the State of New Crmpshire elect its legislature via sortition among all eligible registered voters?',
     extendedText:
@@ -324,7 +324,7 @@ export const mockBallotQuestions: Record<string, BallotQuestion> = {
     id: '2',
     electionId: '3', // New Crmpshire General Election (county-level)
     jurisdictionId: '2', // Bullton County
-    questionTypeId: '2', // Municipal Bond Issue
+    questionTypeId: '2', // Bond Issue
     shortTitle: 'Bullton County Infrastructure Bond - $125 Million',
     extendedText:
       'Shall Bullton County be authorized to issue bonds in the amount of $125 million for the purpos of vanity projects for the County Executive?',
@@ -336,8 +336,8 @@ export const mockBallotQuestions: Record<string, BallotQuestion> = {
   },
   '3': {
     id: '3',
-    electionId: '2', // Federal election (Chief Sycophant)
-    jurisdictionId: '3', // Federal jurisdiction
+    electionId: '2', // Federal election
+    jurisdictionId: '3', // Federal
     questionTypeId: '4', // Citizen Initiative
     shortTitle: 'National Ranked Choice Voting Initiative',
     extendedText:
@@ -458,23 +458,20 @@ export const mockContestResults: Record<string, ContestResult> = {
   },
 };
 
-// Election Results Data
 export const mockElectionResults: Record<string, ElectionResult> = {
   '1': {
     id: '1',
     electionId: '1',
     totalVotes: 158000000,
     reportingPercentage: 100,
-    lastUpdated: '2024-11-06T10:30:00Z',
-    contestResults: [mockContestResults['1']], // God-Emperor contest
+    contestResults: [mockContestResults['1']], // God-Emperor
   },
   '2': {
     id: '2',
     electionId: '2',
     totalVotes: 158000000,
     reportingPercentage: 100,
-    lastUpdated: '2024-11-06T10:30:00Z',
-    contestResults: [mockContestResults['2']], // Chief Sycophant contest
+    contestResults: [mockContestResults['2']], // Chief Sycophant
     ballotQuestionResults: [
       {
         ballotQuestionId: '3',
@@ -489,9 +486,8 @@ export const mockElectionResults: Record<string, ElectionResult> = {
   '3': {
     id: '3',
     electionId: '3',
-    totalVotes: 5215915, // Combined votes from ballot question and dogcatcher contest
+    totalVotes: 5215915,
     reportingPercentage: 100,
-    lastUpdated: '2025-07-20T08:00:00Z',
     contestResults: [mockContestResults['3']],
     ballotQuestionResults: [
       {

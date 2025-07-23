@@ -17,7 +17,6 @@ export default function Header({
     <AppBar position="static" elevation={0}>
       <Container maxWidth="xl">
         <Box sx={{ display: 'flex' }}>
-          {/* Header content aligned with left column */}
           <Box sx={{ width: { xs: '100%', md: '50%' }, pr: { md: 2 } }}>
             <Toolbar
               disableGutters
@@ -30,7 +29,7 @@ export default function Header({
                 pl: 0,
               }}
             >
-              {/* New Crmpshire Seal - inline in the toolbar */}
+              {/* New Crmpshire Seal */}
               <Box
                 sx={{
                   width: { xs: 48, sm: 56, md: 64 },
@@ -57,7 +56,7 @@ export default function Header({
                 />
               </Box>
 
-              {/* Title text with padding */}
+              {/* Title */}
               <Typography
                 variant="h6"
                 component={Link}
@@ -67,9 +66,9 @@ export default function Header({
                   color: 'inherit',
                   textDecoration: 'none',
                   flexGrow: 1,
-                  pl: 1, // Padding to the left of the text
+                  pl: 1,
                   alignSelf: 'flex-start',
-                  mt: 0.5, // Small margin to align better with seal
+                  mt: 0.5,
                 }}
               >
                 <Box
@@ -92,7 +91,6 @@ export default function Header({
             </Toolbar>
           </Box>
 
-          {/* Right side - empty space to match main layout */}
           <Box sx={{ width: { xs: '0%', md: '75%' } }} />
         </Box>
       </Container>

@@ -32,14 +32,14 @@ export const BallotQuestionResult: React.FC<BallotQuestionResultProps> = ({
   onToggleExpanded,
   formatNumber,
 }) => {
-  // Create info content for extended text
+  // extended text info
   const infoContent = (
     <Typography variant="body2" color="text.secondary">
       {question.extendedText}
     </Typography>
   );
 
-  // Show truncated text when not expanded
+  // only show truncated if info button not clicked to expand
   const truncatedText = !isExpanded && (
     <Typography
       variant="body2"
@@ -57,10 +57,9 @@ export const BallotQuestionResult: React.FC<BallotQuestionResultProps> = ({
     </Typography>
   );
 
-  // Create chart content
+  // Ballot Questions are set up as if the questions are candidates
   const chartContent = ballotResult ? (
     (() => {
-      // Create a mock ContestResult structure for ballot questions
       const mockContestResult: ContestResult = {
         contestId: `ballot-${question.id}`,
         totalVotes: ballotResult.yesVotes + ballotResult.noVotes,
@@ -80,13 +79,11 @@ export const BallotQuestionResult: React.FC<BallotQuestionResultProps> = ({
         ],
       };
 
-      // Create mock candidates for Yes and No
       const mockCandidatesForBallot = {
         yes: { id: 'yes', name: 'Yes' },
         no: { id: 'no', name: 'No' },
       };
 
-      // Custom color function for ballot questions
       const getBallotQuestionColor = (index: number) => {
         return index === 0
           ? BALLOT_QUESTION_COLORS.YES

@@ -42,7 +42,7 @@ export const ContestResult: React.FC<ContestResultProps> = ({
   getColorForResult,
   formatNumber,
 }) => {
-  // Create info content for office details
+  // extra info about the office
   const infoContent = office && (
     <>
       <Typography variant="h6" color="primary" gutterBottom sx={{ mb: 1 }}>
@@ -78,7 +78,6 @@ export const ContestResult: React.FC<ContestResultProps> = ({
     </>
   );
 
-  // Create chart content
   const chartContent = contestResult ? (
     <HorizontalBarChart
       contestResult={contestResult}

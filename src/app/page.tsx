@@ -868,7 +868,7 @@ export default function HomePage() {
 
                         <Grid container spacing={3}>
                           {(() => {
-                            // Group ticket-based contests that share the same tickets and date
+                            // Group ticket-based contests
                             const groupedResults: Array<{
                               type:
                                 | 'contest'
@@ -884,14 +884,13 @@ export default function HomePage() {
                               if (result.type === 'contest') {
                                 const contest = result.item as Contest;
 
-                                // Skip if already processed
                                 if (processedContestIds.has(contest.id)) {
                                   return;
                                 }
 
-                                // Check if this is a ticket-based contest
+                                // ticket-based contest?
                                 if (contest.isTicketBased && contest.tickets) {
-                                  // Find other ticket-based contests with same tickets and date
+                                  // find otheres with same ticket and election date
                                   const relatedContests =
                                     combinedResults.filter((r) => {
                                       if (r.type !== 'contest') return false;
@@ -904,7 +903,6 @@ export default function HomePage() {
                                       )
                                         return false;
 
-                                      // Check if they share the same tickets and election date
                                       const sameTickets =
                                         contest.tickets?.every((ticket) =>
                                           otherContest.tickets?.some(
@@ -926,13 +924,11 @@ export default function HomePage() {
                                       return sameTickets && sameDate;
                                     });
 
-                                  // Mark all related contests as processed
                                   relatedContests.forEach((r) => {
                                     const c = r.item as Contest;
                                     processedContestIds.add(c.id);
                                   });
 
-                                  // If more than one contest, group them
                                   if (relatedContests.length > 1) {
                                     const groupKey = `ticket-group-${contest.electionId}-${contest.jurisdictionId}`;
                                     groupedResults.push({
@@ -941,14 +937,14 @@ export default function HomePage() {
                                       groupKey,
                                     });
                                   } else {
-                                    // Single ticket-based contest
+                                    // only one ticket-based
                                     groupedResults.push({
                                       type: 'contest',
                                       items: [result],
                                     });
                                   }
                                 } else {
-                                  // Non-ticket-based contest
+                                  //normal non-ticket contest
                                   processedContestIds.add(contest.id);
                                   groupedResults.push({
                                     type: 'contest',
@@ -967,14 +963,14 @@ export default function HomePage() {
                             return groupedResults;
                           })().map((groupedResult) => {
                             if (groupedResult.type === 'contestGroup') {
-                              // Render grouped ticket-based contests using GroupedContestResultComponent
+                              // grouped ticket use GroupedContestResultComponent
                               const contests = groupedResult.items.map(
                                 (item) => item.item as Contest
                               );
                               const elections = groupedResult.items.map(
                                 (item) => item.election!
                               );
-                              const primaryElection = elections[0]; // Use first election for shared data
+                              const primaryElection = elections[0];
                               const groupOffices = groupedResult.items
                                 .map((item) =>
                                   offices.find(
@@ -987,7 +983,6 @@ export default function HomePage() {
                                 (j) => j.id === contests[0].jurisdictionId
                               );
 
-                              // Use the first contest's result for ticket data since they should be identical
                               const primaryContest = contests[0];
                               const electionResult = primaryElection
                                 ? electionResults[primaryElection.id]
@@ -997,7 +992,6 @@ export default function HomePage() {
                                   (cr) => cr.contestId === primaryContest.id
                                 );
 
-                              // Create lookup objects for the chart component
                               const partiesLookup = parties.reduce(
                                 (acc, party) => {
                                   acc[party.id] = party;
@@ -1049,7 +1043,7 @@ export default function HomePage() {
                                 />
                               );
                             } else if (groupedResult.type === 'contest') {
-                              // Render single contest using ContestResultComponent
+                              // single non-ticket
                               const result = groupedResult.items[0];
                               const contest = result.item as Contest;
                               const election = result.election!;
@@ -1067,7 +1061,6 @@ export default function HomePage() {
                                   (cr) => cr.contestId === contest.id
                                 );
 
-                              // Create lookup objects for the chart component
                               const partiesLookup = parties.reduce(
                                 (acc, party) => {
                                   acc[party.id] = party;
@@ -1114,7 +1107,7 @@ export default function HomePage() {
                                 />
                               );
                             } else {
-                              // Ballot Question using BallotQuestionResultComponent
+                              // Ballot Questions use BallotQuestionResultComponent
                               const result = groupedResult.items[0];
                               const question = result.item as BallotQuestion;
                               const election = result.election!;
@@ -1158,7 +1151,7 @@ export default function HomePage() {
                 </Box>
               )}
 
-              {/* Show message when both searches are disabled */}
+              {/* if neither search type enabled */}
               {!contestSearchEnabled && !ballotQuestionSearchEnabled && (
                 <Box sx={{ textAlign: 'center', py: 8 }}>
                   <Typography variant="h6" color="text.secondary">

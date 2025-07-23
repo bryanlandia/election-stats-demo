@@ -9,7 +9,7 @@ const newCrampshireTheme = createTheme({
   palette: {
     primary: {
       main: '#1A3A2B', // deep green from seal
-      contrastText: '#F7E7B4', // light gold from seal
+      contrastText: '#F7E7B4', // lighter gold from seal
     },
     secondary: {
       main: '#B49A5A', // gold from seal

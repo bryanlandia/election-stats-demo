@@ -62,7 +62,7 @@ export const ElectionResultCard: React.FC<ElectionResultCardProps> = ({
             </Typography>
           )}
 
-          {/* Title with optional info toggle */}
+          {/* Title */}
           <Box
             sx={{
               display: 'flex',
@@ -89,7 +89,7 @@ export const ElectionResultCard: React.FC<ElectionResultCardProps> = ({
             )}
           </Box>
 
-          {/* Toggleable info content */}
+          {/* Info content with toggle */}
           {infoExpanded && infoContent && (
             <Box
               sx={{
@@ -108,7 +108,7 @@ export const ElectionResultCard: React.FC<ElectionResultCardProps> = ({
             {subtitle}
           </Typography>
 
-          {/* Main content */}
+          {/*children main content */}
           {children}
         </CardContent>
       </Card>
