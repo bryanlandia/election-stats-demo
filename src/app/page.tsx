@@ -6,6 +6,7 @@ import {
   BallotQuestion,
   Candidate,
   Contest,
+  ContestResult,
   Election,
   ElectionResult,
   Jurisdiction,
@@ -32,7 +33,6 @@ import {
   FormControlLabel,
   IconButton,
   InputLabel,
-  LinearProgress,
   MenuItem,
   OutlinedInput,
   Paper,
@@ -42,7 +42,7 @@ import {
   Tab,
   Tabs,
   TextField,
-  Typography,
+  Typography
 } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import React, { useEffect, useState } from 'react';
@@ -269,10 +269,9 @@ export default function HomePage() {
     setElectionResults(resultsMap);
   };
 
-  // Filter contests and ballot questions when search mode or filters change
+  // Filter contests when search mode or filters change
   useEffect(() => {
     let filteredContests = contests;
-    let filteredQuestions = ballotQuestions;
 
     if (searchMode === 'year') {
       // Year range filter - filter by election dates
@@ -285,30 +284,22 @@ export default function HomePage() {
       filteredContests = contests.filter((contest) =>
         electionIds.includes(contest.electionId)
       );
-      filteredQuestions = ballotQuestions.filter((question) =>
-        electionIds.includes(question.electionId)
-      );
     } else if (searchMode === 'election') {
       // Election dates filter
       if (selectedElection !== 'all') {
         filteredContests = contests.filter(
           (contest) => contest.electionId === selectedElection
         );
-        filteredQuestions = ballotQuestions.filter(
-          (question) => question.electionId === selectedElection
-        );
       }
     }
 
     setFilteredContests(filteredContests);
-    setFilteredBallotQuestions(filteredQuestions);
   }, [
     searchMode,
     yearRange,
     selectedElection,
     elections,
     contests,
-    ballotQuestions,
   ]);
 
   // Apply contest search filters in addition to main filters
@@ -370,7 +361,23 @@ export default function HomePage() {
       return; // Use the main filtering results
     }
 
-    let filtered = filteredBallotQuestions; // Start with already filtered questions
+    let filtered = ballotQuestions; // Start with all ballot questions
+
+    // Apply year range or election filter first
+    if (searchMode === 'year') {
+      const electionsInRange = elections.filter((election) => {
+        const year = new Date(election.date).getFullYear();
+        return year >= yearRange[0] && year <= yearRange[1];
+      });
+      const electionIds = electionsInRange.map((e) => e.id);
+      filtered = filtered.filter((question) =>
+        electionIds.includes(question.electionId)
+      );
+    } else if (searchMode === 'election' && selectedElection !== 'all') {
+      filtered = filtered.filter(
+        (question) => question.electionId === selectedElection
+      );
+    }
 
     // Filter by selected jurisdiction
     if (selectedJurisdiction) {
@@ -391,7 +398,11 @@ export default function HomePage() {
     ballotQuestionSearchEnabled,
     selectedJurisdiction,
     selectedQuestionType,
-    filteredBallotQuestions,
+    searchMode,
+    yearRange,
+    selectedElection,
+    elections,
+    ballotQuestions,
   ]);
 
   // Helper functions for chart rendering
@@ -1313,154 +1324,50 @@ export default function HomePage() {
 
                                       {/* Ballot Question Results Chart */}
                                       {ballotResult ? (
-                                        <Box sx={{ mb: 2 }}>
-                                          <Paper
-                                            sx={{
-                                              p: 1.5,
-                                              mb: 1.5,
-                                              backgroundColor:
-                                                ballotResult.passed
-                                                  ? '#4caf5015'
-                                                  : '#f4433615',
-                                              border: ballotResult.passed
-                                                ? '1px solid #4caf5040'
-                                                : '1px solid #f4433640',
-                                            }}
-                                          >
-                                            <Box
-                                              sx={{
-                                                display: 'flex',
-                                                justifyContent: 'space-between',
-                                                alignItems: 'center',
-                                              }}
-                                            >
-                                              <Box>
-                                                <Typography
-                                                  variant="h6"
-                                                  color={
-                                                    ballotResult.passed
-                                                      ? 'success.main'
-                                                      : 'error.main'
-                                                  }
-                                                >
-                                                  Yes{' '}
-                                                  {ballotResult.passed
-                                                    ? '✓'
-                                                    : ''}
-                                                </Typography>
-                                                <Typography
-                                                  variant="body2"
-                                                  color="text.secondary"
-                                                >
-                                                  {formatNumber(
-                                                    ballotResult.yesVotes
-                                                  )}{' '}
-                                                  votes
-                                                </Typography>
-                                              </Box>
-                                              <Typography
-                                                variant="h4"
-                                                color={
-                                                  ballotResult.passed
-                                                    ? 'success.main'
-                                                    : 'text.primary'
-                                                }
-                                              >
-                                                {ballotResult.yesPercentage}%
-                                              </Typography>
-                                            </Box>
-                                            <LinearProgress
-                                              variant="determinate"
-                                              value={ballotResult.yesPercentage}
-                                              sx={{
-                                                mt: 0.5,
-                                                height: 6,
-                                                borderRadius: 3,
-                                                '& .MuiLinearProgress-bar': {
-                                                  backgroundColor: '#4caf50',
-                                                },
-                                              }}
-                                            />
-                                          </Paper>
+                                        (() => {
+                                          // Create a mock ContestResult structure for ballot questions
+                                          const mockContestResult: ContestResult = {
+                                            contestId: `ballot-${question.id}`,
+                                            totalVotes: ballotResult.yesVotes + ballotResult.noVotes,
+                                            results: [
+                                              {
+                                                candidateId: 'yes',
+                                                votes: ballotResult.yesVotes,
+                                                percentage: ballotResult.yesPercentage,
+                                                winner: ballotResult.passed,
+                                              },
+                                              {
+                                                candidateId: 'no', 
+                                                votes: ballotResult.noVotes,
+                                                percentage: ballotResult.noPercentage,
+                                                winner: !ballotResult.passed,
+                                              },
+                                            ],
+                                          };
 
-                                          <Paper
-                                            sx={{
-                                              p: 1.5,
-                                              backgroundColor:
-                                                !ballotResult.passed
-                                                  ? '#f4433615'
-                                                  : 'background.paper',
-                                              border: '1px solid #f4433640',
-                                            }}
-                                          >
-                                            <Box
-                                              sx={{
-                                                display: 'flex',
-                                                justifyContent: 'space-between',
-                                                alignItems: 'center',
-                                              }}
-                                            >
-                                              <Box>
-                                                <Typography
-                                                  variant="h6"
-                                                  color="error.main"
-                                                >
-                                                  No{' '}
-                                                  {!ballotResult.passed
-                                                    ? '✓'
-                                                    : ''}
-                                                </Typography>
-                                                <Typography
-                                                  variant="body2"
-                                                  color="text.secondary"
-                                                >
-                                                  {formatNumber(
-                                                    ballotResult.noVotes
-                                                  )}{' '}
-                                                  votes
-                                                </Typography>
-                                              </Box>
-                                              <Typography
-                                                variant="h4"
-                                                color={
-                                                  !ballotResult.passed
-                                                    ? 'error.main'
-                                                    : 'text.primary'
-                                                }
-                                              >
-                                                {ballotResult.noPercentage}%
-                                              </Typography>
-                                            </Box>
-                                            <LinearProgress
-                                              variant="determinate"
-                                              value={ballotResult.noPercentage}
-                                              sx={{
-                                                mt: 0.5,
-                                                height: 6,
-                                                borderRadius: 3,
-                                                '& .MuiLinearProgress-bar': {
-                                                  backgroundColor: '#f44336',
-                                                },
-                                              }}
-                                            />
-                                          </Paper>
+                                          // Create mock candidates for Yes and No
+                                          const mockCandidatesForBallot = {
+                                            yes: { id: 'yes', name: 'Yes' },
+                                            no: { id: 'no', name: 'No' },
+                                          };
 
-                                          <Typography
-                                            variant="body2"
-                                            color="text.secondary"
-                                            sx={{
-                                              mt: 1.5,
-                                              textAlign: 'center',
-                                            }}
-                                          >
-                                            Result:{' '}
-                                            <strong>
-                                              {ballotResult.passed
-                                                ? 'PASSED'
-                                                : 'FAILED'}
-                                            </strong>
-                                          </Typography>
-                                        </Box>
+                                          // Custom color function for ballot questions
+                                          const getBallotQuestionColor = (index: number) => {
+                                            // Yes gets green, No gets red
+                                            return index === 0 ? '#4caf50' : '#f44336';
+                                          };
+
+                                          return (
+                                            <HorizontalBarChart
+                                              contestResult={mockContestResult}
+                                              parties={{}}
+                                              candidates={mockCandidatesForBallot}
+                                              tickets={{}}
+                                              getColorForResult={getBallotQuestionColor}
+                                              formatNumber={formatNumber}
+                                            />
+                                          );
+                                        })()
                                       ) : (
                                         <Box
                                           sx={{

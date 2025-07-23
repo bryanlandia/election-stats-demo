@@ -327,7 +327,7 @@ export const mockBallotQuestions: Record<string, BallotQuestion> = {
     questionTypeId: '2', // Municipal Bond Issue
     shortTitle: 'Bullton County Infrastructure Bond - $125 Million',
     extendedText:
-      'Shall Bullton County be authorized to issue bonds in the amount of $125 million for the purpose of rebuilding and modernizing county infrastructure including roads, bridges, water treatment facilities, and rural broadband expansion?',
+      'Shall Bullton County be authorized to issue bonds in the amount of $125 million for the purpos of vanity projects for the County Executive?',
     passed: false,
     yesVotes: 485000,
     noVotes: 520000,
@@ -475,6 +475,16 @@ export const mockElectionResults: Record<string, ElectionResult> = {
     reportingPercentage: 100,
     lastUpdated: '2024-11-06T10:30:00Z',
     contestResults: [mockContestResults['2']], // Chief Sycophant contest
+    ballotQuestionResults: [
+      {
+        ballotQuestionId: '3',
+        yesVotes: 112000000,
+        noVotes: 88000000,
+        yesPercentage: 56.0,
+        noPercentage: 44.0,
+        passed: true,
+      },
+    ],
   },
   '3': {
     id: '3',
@@ -491,6 +501,14 @@ export const mockElectionResults: Record<string, ElectionResult> = {
         yesPercentage: 71.2,
         noPercentage: 28.8,
         passed: true,
+      },
+      {
+        ballotQuestionId: '2',
+        yesVotes: 485000,
+        noVotes: 520000,
+        yesPercentage: 48.3,
+        noPercentage: 51.7,
+        passed: false,
       },
     ],
   },

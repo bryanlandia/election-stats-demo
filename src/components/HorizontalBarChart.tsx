@@ -34,29 +34,64 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
   // Find the maximum votes for scaling
   const maxVotes = Math.max(...contestResult.results.map((r) => r.votes));
 
-  const chartHeight = sortedResults.length * 75 + 30; // Reduced from 50px to 35px per bar
-  const chartWidth = 900;
-  const leftMargin = 30; // Reduced from 160 to 120
-  const rightMargin = 30; // Reduced from 40 to 30
-  const barHeight = 20; // Reduced from 32 to 18 (about half)
-  const barSpacing = 8; // Reduced from 18 to 17
+  // Calculate the longest display name to determine left margin
+  const getDisplayName = (result: any) => {
+    if (result.ticketId && tickets[result.ticketId]) {
+      const ticket = tickets[result.ticketId];
+      return ticket.candidates.map((c) => getLastName(c.name)).join(' & ');
+    } else if (result.candidateId && candidates[result.candidateId]) {
+      const candidate = candidates[result.candidateId];
+      return getLastName(candidate.name);
+    }
+    return '';
+  };
+
+  const longestName = sortedResults.reduce((longest, result) => {
+    const displayName = getDisplayName(result);
+    return displayName.length > longest.length ? displayName : longest;
+  }, '');
+
+  // Calculate left margin based on longest name (max 15 chars * ~8px per char + padding)
+  const maxNameLength = Math.min(longestName.length, 15);
+  const calculatedLeftMargin = Math.max(maxNameLength * 8 + 0, 80); // Min 80px margin
+
+  // Calculate the maximum width needed for vote count text that appears outside bars
+  const maxVoteCount = Math.max(...sortedResults.map(r => r.votes));
+  const maxVoteCountText = formatNumber(maxVoteCount);
+  const maxVoteCountWidth = maxVoteCountText.length * 8; // Approximate 8px per character
+
+  const chartHeight = sortedResults.length * 75 + 30;
+  const chartWidth = 400;
+  const leftMargin = calculatedLeftMargin;
+  const rightMargin = Math.max(maxVoteCountWidth + 20, 80); // Ensure space for longest vote count + padding
+  const barHeight = 20;
+  const barSpacing = 8;
   const availableWidth = chartWidth - leftMargin - rightMargin;
 
   return (
-    <Paper sx={{ p: 2, mb: 1, backgroundColor: 'background.paper' }}>
+    <Paper 
+      elevation={0}
+      sx={{ 
+        pr: 1, 
+        mb: 1, 
+        backgroundColor: 'background.paper',
+        borderRadius: 0,
+        boxShadow: 'none'
+      }}
+    >
       {' '}
       {/* Reduced padding from 3 to 2, margin from 2 to 1 */}
       <Box sx={{ width: '100%', overflow: 'auto' }}>
         <svg
-          width={chartWidth}
+          width={leftMargin + availableWidth + rightMargin}
           height={chartHeight}
-          style={{ maxWidth: '100%' }}
+          style={{ maxWidth: 'none', minWidth: '100%' }}
         >
           {/* Chart background */}
           <rect
             x={0}
             y={0}
-            width={chartWidth}
+            width={leftMargin + availableWidth + rightMargin}
             height={chartHeight}
             fill="transparent"
           />
@@ -86,7 +121,42 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
               partyAbbrev = party ? ` (${party.name.charAt(0)})` : '';
             }
 
-            const color = getColorForResult(index, party);
+            // Check if this is a primary contest (all candidates from same party)
+            const allPartiesInContest = sortedResults
+              .map(r => {
+                if (r.ticketId && tickets[r.ticketId]) {
+                  return tickets[r.ticketId].partyId;
+                } else if (r.candidateId && candidates[r.candidateId]) {
+                  return candidates[r.candidateId].partyId;
+                }
+                return null;
+              })
+              .filter(Boolean);
+            
+            const uniqueParties = Array.from(new Set(allPartiesInContest));
+            const isPrimaryContest = uniqueParties.length === 1 && party;
+            
+            let color: string;
+            let isDarkColor = false;
+            if (isPrimaryContest) {
+              const isWinner = result.winner;
+              if (isWinner) {
+                // Winner gets pure party color
+                color = getColorForResult(0, party);
+                isDarkColor = false; // Party colors are typically bright
+              } else {
+                // Non-winners get party color with increasing black tints
+                const baseColor = getColorForResult(0, party);
+                // Create darker tones by mixing with black (20%, 40%, 60%, etc.)
+                const tintLevel = Math.min(index * 20 + 20, 80); // Cap at 80% black
+                color = `color-mix(in srgb, ${baseColor} ${100 - tintLevel}%, black ${tintLevel}%)`;
+                isDarkColor = tintLevel >= 40; // Consider dark if 40% or more black
+              }
+            } else {
+              // Regular multi-party contest
+              color = getColorForResult(index, party);
+              isDarkColor = false; // Regular colors are typically bright
+            }
             const barWidth = (result.votes / maxVotes) * availableWidth;
             const y = 25 + index * (barHeight + barSpacing); // Reduced top padding from 30 to 25
             const isWinner = result.winner;
@@ -95,26 +165,27 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
               <g key={result.ticketId || result.candidateId}>
                 {/* Candidate name */}
                 <text
-                  x={leftMargin - 8} // Reduced from -10 to -8
-                  y={y + barHeight / 2 + 1} // Adjusted vertical alignment
+                  x={leftMargin - 8}
+                  y={y + barHeight / 2 + 1}
                   textAnchor="end"
-                  fontSize="13" // Reduced from 14 to 13
+                  fontSize="13"
                   fontWeight={isWinner ? 'bold' : 'normal'}
                   fill="#333"
                 >
                   <title>{fullName}</title>
-                  {displayName.length > 16 // Reduced from 20 to 16 for tighter fit
-                    ? `${displayName.substring(0, 16)}...`
+                  {/* Truncate longer than 15 chars, with ellipsis */}
+                  {displayName.length > 15
+                    ? `${displayName.substring(0, 15)}...`
                     : displayName}
                 </text>
 
-                {/* Party abbreviation */}
+                {/* Party abbrev */}
                 {partyAbbrev && (
                   <text
-                    x={leftMargin - 8} // Reduced from -10 to -8
-                    y={y + barHeight / 2 + 13} // Reduced spacing from 16 to 13
+                    x={leftMargin - 8}
+                    y={y + barHeight / 2 + 13}
                     textAnchor="end"
-                    fontSize="10" // Reduced from 11 to 10
+                    fontSize="10"
                     fill="#666"
                   >
                     <title>{party?.name}</title>
@@ -122,16 +193,23 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
                   </text>
                 )}
 
-                {/* Bar background */}
+                {/* Bar background with left border */}
                 <rect
                   x={leftMargin}
                   y={y}
                   width={availableWidth}
                   height={barHeight}
-                  fill="#f5f5f5"
-                  stroke="#e0e0e0"
+                  fill="transparent"
+                />
+
+                {/* Left vertical border line */}
+                <line
+                  x1={leftMargin}
+                  y1={y}
+                  x2={leftMargin}
+                  y2={y + barHeight}
+                  stroke="#666"
                   strokeWidth="1"
-                  rx="4"
                 />
 
                 {/* Vote bar */}
@@ -142,55 +220,36 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
                   height={barHeight}
                   fill={color}
                   opacity={isWinner ? '1' : '0.8'}
-                  rx="4"
                 />
 
-                {/* Vote count text */}
+                {/* Vote count text - right-aligned, inside bar if wide enough, outside if not */}
                 <text
-                  x={leftMargin + Math.max(barWidth / 2, 25)} // Reduced from 30 to 25
-                  y={y + barHeight / 2 + 1} // Adjusted vertical alignment
-                  textAnchor="left"
-                  fontSize="12" // Reduced from 13 to 12
-                  fontWeight="600"
-                  fill={barWidth > 60 ? 'white' : '#333'} // Reduced threshold from 80 to 60
+                  x={
+                    barWidth > 80
+                      ? leftMargin + barWidth - 9
+                      : leftMargin + barWidth + 8
+                  }
+                  y={y + barHeight / 2 + 4}
+                  textAnchor={barWidth > 80 ? 'end' : 'start'}
+                  fontSize="13"
+                  fontWeight={isWinner ? 'bold' : '600'}
+                  fill={barWidth > 80 ? (isDarkColor ? 'white' : 'white') : '#333'}
                 >
                   {formatNumber(result.votes)}
                 </text>
 
-                {/* Percentage text */}
-                <text
-                  x={leftMargin + Math.max(barWidth / 2, 25)} // Reduced from 30 to 25
-                  y={y + barHeight / 2 + 12} // Reduced spacing from 16 to 12
-                  textAnchor="left"
-                  fontSize="10" // Reduced from 11 to 10
-                  fontWeight="500"
-                  fill={barWidth > 60 ? 'rgba(255,255,255,0.9)' : '#666'} // Reduced threshold from 80 to 60
-                >
-                  {result.percentage}%
-                </text>
-
-                {/* Winner checkmark */}
+                {/* Winner checkmark - left-aligned at beginning of bar */}
                 {isWinner && (
-                  <g>
-                    <circle
-                      cx={leftMargin + barWidth - 12} // Reduced from -15 to -12
-                      cy={y + barHeight / 2}
-                      r="8" // Reduced from 10 to 8
-                      fill="white"
-                      stroke={color}
-                      strokeWidth="2"
-                    />
-                    <path
-                      d={`M ${leftMargin + barWidth - 15} ${y + barHeight / 2} 
-                         L ${leftMargin + barWidth - 12} ${y + barHeight / 2 + 3} 
-                         L ${leftMargin + barWidth - 9} ${y + barHeight / 2 - 3}`} // Adjusted for smaller checkmark
-                      stroke={color}
-                      strokeWidth="2"
-                      fill="none"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </g>
+                  <text
+                    x={leftMargin + 12}
+                    y={y + barHeight / 2 + 4}
+                    textAnchor="middle"
+                    fontSize="14"
+                    fontWeight="bold"
+                    fill="#000"
+                  >
+                    ✓
+                  </text>
                 )}
 
                 {/* Disqualified indicator */}
@@ -211,17 +270,16 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
 
           {/* Chart title area */}
           <text
-            x={leftMargin + availableWidth / 2}
+            x={0}
             y={chartHeight - 10}
-            textAnchor="middle"
             fontSize="12"
-            fill="#666"
+            fontWeight="bold"
+            fill="#333"
           >
-            Total Ballots: {formatNumber(contestResult.totalVotes)}
+            {formatNumber(contestResult.totalVotes)} Total Ballots
           </text>
         </svg>
       </Box>
-      
     </Paper>
   );
 };
