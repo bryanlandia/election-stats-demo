@@ -11,7 +11,7 @@ export default function Card({ title, children, className = '' }: CardProps) {
   return (
     <MuiCard sx={{ height: '100%' }} className={className}>
       <CardContent>
-        <Typography variant="h7" component="h4" gutterBottom>
+        <Typography variant="h6" component="h4" gutterBottom>
           {title}
         </Typography>
         <Box>{children}</Box>

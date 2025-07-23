@@ -275,7 +275,7 @@ export const mockQuestionTypes: Record<string, QuestionType> = {
   },
   '2': {
     id: '2',
-    name: 'Municipal Bond Issue',
+    name: 'County Bond Issue',
     description: 'Bond authorization for public infrastructure projects',
     category: 'Bond Issue',
     requiresSupermajority: false,
