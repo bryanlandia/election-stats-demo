@@ -54,7 +54,7 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
 
   // Calculate left margin based on longest name (max 15 chars * ~8px per char + padding)
   const maxNameLength = Math.min(longestName.length, 15);
-  const calculatedLeftMargin = Math.max(maxNameLength * 8 + 2, 0); // Min 80px margin
+  const calculatedLeftMargin = Math.max(maxNameLength * 8 + 8, 0); // Min 80px margin
 
   // Calculate the maximum width needed for vote count text that appears outside bars
   const maxVoteCount = Math.max(...sortedResults.map((r) => r.votes));
