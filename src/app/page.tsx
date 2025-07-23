@@ -1225,26 +1225,13 @@ export default function HomePage() {
                                         </Box>
                                       )}
 
-                                      <Box
-                                        sx={{
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          mb: 2,
-                                        }}
-                                      >
-                                        <Chip
-                                          label="Partisan Ticket"
-                                          color="primary"
-                                          size="small"
-                                        />
-                                      </Box>
-
                                       <Typography
                                         variant="body2"
                                         color="text.secondary"
                                         sx={{ mb: 2 }}
                                       >
-                                        {jurisdiction?.name || 'Unknown'}
+                                        {jurisdiction?.name || 'Unknown'} —
+                                        Partisan Ticket
                                       </Typography>
 
                                       {/* Horizontal Bar Chart */}
@@ -1447,34 +1434,15 @@ export default function HomePage() {
                                           </Box>
                                         )}
 
-                                      <Box
-                                        sx={{
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          mb: 2,
-                                        }}
-                                      >
-                                        <Chip
-                                          label={
-                                            contest.isPartisan
-                                              ? 'Partisan'
-                                              : 'Non-partisan'
-                                          }
-                                          color={
-                                            contest.isPartisan
-                                              ? 'primary'
-                                              : 'default'
-                                          }
-                                          size="small"
-                                        />
-                                      </Box>
-
                                       <Typography
                                         variant="body2"
                                         color="text.secondary"
                                         sx={{ mb: 2 }}
                                       >
-                                        {jurisdiction?.name || 'Unknown'}
+                                        {jurisdiction?.name || 'Unknown'} —{' '}
+                                        {contest.isPartisan
+                                          ? 'Partisan'
+                                          : 'Non-partisan'}
                                       </Typography>
 
                                       {/* Horizontal Bar Chart */}
@@ -1556,28 +1524,6 @@ export default function HomePage() {
                                           ` • ${questionType.name}`}
                                       </Typography>
 
-                                      <Box
-                                        sx={{
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          mb: 2,
-                                        }}
-                                      >
-                                        <Chip
-                                          label={
-                                            question.passed
-                                              ? 'Passed'
-                                              : 'Failed'
-                                          }
-                                          color={
-                                            question.passed
-                                              ? 'success'
-                                              : 'error'
-                                          }
-                                          size="small"
-                                        />
-                                      </Box>
-
                                       {/* Question title with info toggle */}
                                       <Box
                                         sx={{
@@ -1652,7 +1598,8 @@ export default function HomePage() {
                                         color="text.secondary"
                                         sx={{ mb: 2 }}
                                       >
-                                        {jurisdiction?.name || 'Unknown'}
+                                        {jurisdiction?.name || 'Unknown'} —{' '}
+                                        {question.passed ? 'Passed' : 'Failed'}
                                       </Typography>
 
                                       {/* Ballot Question Results Chart */}

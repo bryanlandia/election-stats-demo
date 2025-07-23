@@ -311,7 +311,7 @@ export const mockBallotQuestions: Record<string, BallotQuestion> = {
     jurisdictionId: '1',
     questionTypeId: '1', // Constitutional Amendment
     shortTitle:
-      'Decided: The State of New Crmpshire shall elect its legislature via sortition among all eligible registered voters in the State of New Crmpshire.',
+      'Shall the State of New Crmpshire elect its legislature via sortition among all eligible registered voters?',
     extendedText:
       'The election of the legislature for the State of New Crmpshire shall be done via sortition among all eligible registered voters at the time of each election. The legislature will be comprised of 100 registered voters, chosen randomly, and shall serve for a period of 1 year. Their annual salary shall be $150,000 per annum, with increases recalculated prior to each sortition selection to be done by the Board of Elections, based on the change to average purchasing power in the capital county of Bullton. The very first legislature shall have a session of 2 years. After 1 year, 25% of the legislature shall be replaced. Each subsequent year and election, 25% shall be replaced by another automated sortition.',
     passed: true,
