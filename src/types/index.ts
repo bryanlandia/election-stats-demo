@@ -121,7 +121,6 @@ export interface ElectionResult {
   electionId: string;
   totalVotes: number;
   reportingPercentage: number;
-  lastUpdated: string;
   contestResults: ContestResult[];
   ballotQuestionResults?: Array<{
     ballotQuestionId: string;
