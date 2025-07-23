@@ -10,7 +10,7 @@ export async function GET(
     const electionId = id;
 
     // First try to get the new data structure
-    let result = mockElectionResults[electionId];
+    const result = mockElectionResults[electionId];
 
     if (!result) {
       return NextResponse.json(
