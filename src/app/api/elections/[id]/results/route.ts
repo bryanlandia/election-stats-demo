@@ -1,4 +1,4 @@
-import { legacyMockResults, mockElectionResults } from '@/lib/mockData';
+import { mockElectionResults } from '@/lib/mockData';
 import { NextResponse } from 'next/server';
 
 export async function GET(
@@ -11,11 +11,6 @@ export async function GET(
 
     // First try to get the new data structure
     let result = mockElectionResults[electionId];
-
-    // Fall back to legacy format for backward compatibility
-    if (!result) {
-      result = legacyMockResults[electionId];
-    }
 
     if (!result) {
       return NextResponse.json(

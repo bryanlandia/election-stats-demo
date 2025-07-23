@@ -517,44 +517,6 @@ export const mockElectionResults: Record<string, ElectionResult> = {
     electionId: '4',
     totalVotes: 2400000,
     reportingPercentage: 100,
-    lastUpdated: '2024-08-07T11:15:00Z',
     contestResults: [mockContestResults['4']],
-  },
-};
-
-// Legacy format for backward compatibility
-export const legacyMockResults: Record<string, any> = {
-  '1': {
-    id: '1',
-    electionId: '1',
-    totalVotes: 158000000,
-    reportingPercentage: 100,
-    lastUpdated: '2024-11-06T10:30:00Z',
-    candidates: [
-      {
-        id: '1',
-        name: 'Martha Stewart & Emerill Lagasse',
-        party: 'Extremely Buttery',
-        votes: 117236000,
-        percentage: 74.2,
-        color: '#FFDB58',
-      },
-      {
-        id: '2',
-        name: 'Joaquin Phoenix & Ariana Grande',
-        party: 'Vegan Imperium',
-        votes: 33496000,
-        percentage: 21.2,
-        color: '#CC8899',
-      },
-      {
-        id: '3',
-        name: 'Ziz LaSota & Emma Borhanian',
-        party: 'Zizians',
-        votes: 7268000,
-        percentage: 4.6,
-        color: '#000000',
-      },
-    ],
   },
 };
