@@ -56,42 +56,44 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
   const calculatedLeftMargin = Math.max(maxNameLength * 8 + 0, 80); // Min 80px margin
 
   // Calculate the maximum width needed for vote count text that appears outside bars
-  const maxVoteCount = Math.max(...sortedResults.map(r => r.votes));
+  const maxVoteCount = Math.max(...sortedResults.map((r) => r.votes));
   const maxVoteCountText = formatNumber(maxVoteCount);
   const maxVoteCountWidth = maxVoteCountText.length * 8; // Approximate 8px per character
 
   const chartHeight = sortedResults.length * 75 + 30;
-  const chartWidth = 400;
   const leftMargin = calculatedLeftMargin;
   const rightMargin = Math.max(maxVoteCountWidth + 20, 80); // Ensure space for longest vote count + padding
   const barHeight = 20;
   const barSpacing = 8;
-  const availableWidth = chartWidth - leftMargin - rightMargin;
+
+  // Use a responsive width that fits the container
+  const baseChartWidth = 400;
+  const totalMargins = leftMargin + rightMargin;
+  const chartWidth = Math.max(baseChartWidth, totalMargins + 150); // Ensure enough space for bars
+  const availableWidth = chartWidth - totalMargins;
 
   return (
-    <Paper 
+    <Paper
       elevation={0}
-      sx={{ 
-        pr: 1, 
-        mb: 1, 
+      sx={{
+        pr: 1,
+        mb: 1,
         backgroundColor: 'background.paper',
         borderRadius: 0,
-        boxShadow: 'none'
+        boxShadow: 'none',
       }}
     >
-      {' '}
-      {/* Reduced padding from 3 to 2, margin from 2 to 1 */}
-      <Box sx={{ width: '100%', overflow: 'auto' }}>
+      <Box sx={{ width: '100%', overflow: 'hidden' }}>
         <svg
-          width={leftMargin + availableWidth + rightMargin}
+          width={Math.min(chartWidth, 450)} // Cap the width
           height={chartHeight}
-          style={{ maxWidth: 'none', minWidth: '100%' }}
+          style={{ maxWidth: '100%', height: 'auto' }}
         >
           {/* Chart background */}
           <rect
             x={0}
             y={0}
-            width={leftMargin + availableWidth + rightMargin}
+            width={chartWidth}
             height={chartHeight}
             fill="transparent"
           />
@@ -123,7 +125,7 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
 
             // Check if this is a primary contest (all candidates from same party)
             const allPartiesInContest = sortedResults
-              .map(r => {
+              .map((r) => {
                 if (r.ticketId && tickets[r.ticketId]) {
                   return tickets[r.ticketId].partyId;
                 } else if (r.candidateId && candidates[r.candidateId]) {
@@ -132,10 +134,10 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
                 return null;
               })
               .filter(Boolean);
-            
+
             const uniqueParties = Array.from(new Set(allPartiesInContest));
             const isPrimaryContest = uniqueParties.length === 1 && party;
-            
+
             let color: string;
             let isDarkColor = false;
             if (isPrimaryContest) {
@@ -233,7 +235,9 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
                   textAnchor={barWidth > 80 ? 'end' : 'start'}
                   fontSize="13"
                   fontWeight={isWinner ? 'bold' : '600'}
-                  fill={barWidth > 80 ? (isDarkColor ? 'white' : 'white') : '#333'}
+                  fill={
+                    barWidth > 80 ? (isDarkColor ? 'white' : 'white') : '#333'
+                  }
                 >
                   {formatNumber(result.votes)}
                 </text>
@@ -249,19 +253,6 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
                     fill="#000"
                   >
                     ✓
-                  </text>
-                )}
-
-                {/* Disqualified indicator */}
-                {result.disqualified && (
-                  <text
-                    x={leftMargin + availableWidth + 5}
-                    y={y + barHeight / 2 + 2}
-                    fontSize="10"
-                    fill="#f44336"
-                    fontWeight="bold"
-                  >
-                    DQ
                   </text>
                 )}
               </g>

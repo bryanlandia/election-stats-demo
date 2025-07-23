@@ -42,7 +42,7 @@ import {
   Tab,
   Tabs,
   TextField,
-  Typography
+  Typography,
 } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import React, { useEffect, useState } from 'react';
@@ -294,13 +294,7 @@ export default function HomePage() {
     }
 
     setFilteredContests(filteredContests);
-  }, [
-    searchMode,
-    yearRange,
-    selectedElection,
-    elections,
-    contests,
-  ]);
+  }, [searchMode, yearRange, selectedElection, elections, contests]);
 
   // Apply contest search filters in addition to main filters
   useEffect(() => {
@@ -1326,24 +1320,29 @@ export default function HomePage() {
                                       {ballotResult ? (
                                         (() => {
                                           // Create a mock ContestResult structure for ballot questions
-                                          const mockContestResult: ContestResult = {
-                                            contestId: `ballot-${question.id}`,
-                                            totalVotes: ballotResult.yesVotes + ballotResult.noVotes,
-                                            results: [
-                                              {
-                                                candidateId: 'yes',
-                                                votes: ballotResult.yesVotes,
-                                                percentage: ballotResult.yesPercentage,
-                                                winner: ballotResult.passed,
-                                              },
-                                              {
-                                                candidateId: 'no', 
-                                                votes: ballotResult.noVotes,
-                                                percentage: ballotResult.noPercentage,
-                                                winner: !ballotResult.passed,
-                                              },
-                                            ],
-                                          };
+                                          const mockContestResult: ContestResult =
+                                            {
+                                              contestId: `ballot-${question.id}`,
+                                              totalVotes:
+                                                ballotResult.yesVotes +
+                                                ballotResult.noVotes,
+                                              results: [
+                                                {
+                                                  candidateId: 'yes',
+                                                  votes: ballotResult.yesVotes,
+                                                  percentage:
+                                                    ballotResult.yesPercentage,
+                                                  winner: ballotResult.passed,
+                                                },
+                                                {
+                                                  candidateId: 'no',
+                                                  votes: ballotResult.noVotes,
+                                                  percentage:
+                                                    ballotResult.noPercentage,
+                                                  winner: !ballotResult.passed,
+                                                },
+                                              ],
+                                            };
 
                                           // Create mock candidates for Yes and No
                                           const mockCandidatesForBallot = {
@@ -1352,18 +1351,26 @@ export default function HomePage() {
                                           };
 
                                           // Custom color function for ballot questions
-                                          const getBallotQuestionColor = (index: number) => {
+                                          const getBallotQuestionColor = (
+                                            index: number
+                                          ) => {
                                             // Yes gets green, No gets red
-                                            return index === 0 ? '#4caf50' : '#f44336';
+                                            return index === 0
+                                              ? '#4caf50'
+                                              : '#f44336';
                                           };
 
                                           return (
                                             <HorizontalBarChart
                                               contestResult={mockContestResult}
                                               parties={{}}
-                                              candidates={mockCandidatesForBallot}
+                                              candidates={
+                                                mockCandidatesForBallot
+                                              }
                                               tickets={{}}
-                                              getColorForResult={getBallotQuestionColor}
+                                              getColorForResult={
+                                                getBallotQuestionColor
+                                              }
                                               formatNumber={formatNumber}
                                             />
                                           );
