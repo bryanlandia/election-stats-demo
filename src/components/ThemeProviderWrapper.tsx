@@ -16,7 +16,7 @@ const newCrampshireTheme = createTheme({
       contrastText: '#1A3A2B', // deep green
     },
     background: {
-      default: '#F7E7B4', // light gold
+      default: '#FFFFFF',
       paper: '#FFFFFF',
     },
     text: {

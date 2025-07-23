@@ -1,5 +1,5 @@
 import { Candidate, ContestResult, Party, Ticket } from '@/types';
-import { Box, Paper, Typography } from '@mui/material';
+import { Box, Paper } from '@mui/material';
 import React from 'react';
 
 // Horizontal Bar Chart Component for Election Results
@@ -34,12 +34,12 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
   // Find the maximum votes for scaling
   const maxVotes = Math.max(...contestResult.results.map((r) => r.votes));
 
-  const chartHeight = sortedResults.length * 35 + 30; // Reduced from 50px to 35px per bar
-  const chartWidth = 600; // Reduced from 900 to 600 for more compact display
-  const leftMargin = 120; // Reduced from 160 to 120
+  const chartHeight = sortedResults.length * 75 + 30; // Reduced from 50px to 35px per bar
+  const chartWidth = 900;
+  const leftMargin = 30; // Reduced from 160 to 120
   const rightMargin = 30; // Reduced from 40 to 30
-  const barHeight = 18; // Reduced from 32 to 18 (about half)
-  const barSpacing = 17; // Reduced from 18 to 17
+  const barHeight = 20; // Reduced from 32 to 18 (about half)
+  const barSpacing = 8; // Reduced from 18 to 17
   const availableWidth = chartWidth - leftMargin - rightMargin;
 
   return (
@@ -50,7 +50,7 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
         <svg
           width={chartWidth}
           height={chartHeight}
-          style={{ maxWidth: '100%', height: 'auto' }}
+          style={{ maxWidth: '100%' }}
         >
           {/* Chart background */}
           <rect
@@ -60,35 +60,6 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
             height={chartHeight}
             fill="transparent"
           />
-
-          {/* Grid lines */}
-          {[0, 0.25, 0.5, 0.75, 1].map((fraction) => {
-            const x = leftMargin + availableWidth * fraction;
-            return (
-              <g key={fraction}>
-                <line
-                  x1={x}
-                  y1={20}
-                  x2={x}
-                  y2={chartHeight - 20}
-                  stroke="#e0e0e0"
-                  strokeWidth="1"
-                  strokeDasharray={
-                    fraction === 0 || fraction === 1 ? 'none' : '2,2'
-                  }
-                />
-                <text
-                  x={x}
-                  y={15}
-                  textAnchor="middle"
-                  fontSize="12"
-                  fill="#666"
-                >
-                  {formatNumber(Math.round(maxVotes * fraction))}
-                </text>
-              </g>
-            );
-          })}
 
           {/* Bars and labels */}
           {sortedResults.map((result, index) => {
@@ -178,7 +149,7 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
                 <text
                   x={leftMargin + Math.max(barWidth / 2, 25)} // Reduced from 30 to 25
                   y={y + barHeight / 2 + 1} // Adjusted vertical alignment
-                  textAnchor="middle"
+                  textAnchor="left"
                   fontSize="12" // Reduced from 13 to 12
                   fontWeight="600"
                   fill={barWidth > 60 ? 'white' : '#333'} // Reduced threshold from 80 to 60
@@ -190,7 +161,7 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
                 <text
                   x={leftMargin + Math.max(barWidth / 2, 25)} // Reduced from 30 to 25
                   y={y + barHeight / 2 + 12} // Reduced spacing from 16 to 12
-                  textAnchor="middle"
+                  textAnchor="left"
                   fontSize="10" // Reduced from 11 to 10
                   fontWeight="500"
                   fill={barWidth > 60 ? 'rgba(255,255,255,0.9)' : '#666'} // Reduced threshold from 80 to 60
@@ -250,37 +221,7 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
           </text>
         </svg>
       </Box>
-      {/* Legend for disqualified candidates */}
-      {sortedResults.some((r) => r.disqualified) && (
-        <Box sx={{ mt: 2, p: 2, bgcolor: '#fff3e0', borderRadius: 1 }}>
-          <Typography variant="caption" color="text.secondary">
-            <strong>DQ</strong> = Disqualified
-            {sortedResults
-              .filter((r) => r.disqualified)
-              .map((r) => {
-                let displayName = '';
-                let fullName = '';
-                if (r.ticketId && tickets[r.ticketId]) {
-                  displayName = tickets[r.ticketId].candidates
-                    .map((c) => getLastName(c.name))
-                    .join(' & ');
-                  fullName = tickets[r.ticketId].candidates
-                    .map((c) => c.name)
-                    .join(' & ');
-                } else if (r.candidateId && candidates[r.candidateId]) {
-                  displayName = getLastName(candidates[r.candidateId].name);
-                  fullName = candidates[r.candidateId].name;
-                }
-                return (
-                  <span key={r.ticketId || r.candidateId} title={fullName}>
-                    {' • '}
-                    {displayName}: {r.disqualificationReason}
-                  </span>
-                );
-              })}
-          </Typography>
-        </Box>
-      )}
+      
     </Paper>
   );
 };
