@@ -213,11 +213,11 @@ export const mockContests: Record<string, Contest> = {
     jurisdictionId: '3',
     name: 'God-Emperor of the United States',
     isPartisan: true,
-    isTicketBased: false,
-    candidates: [
-      mockCandidates['1'], // Martha Stewart (God-Emperor position)
-      mockCandidates['3'], // Joaquin Phoenix (God-Emperor position)
-      mockCandidates['5'], // Ziz LaSota (God-Emperor position)
+    isTicketBased: true, // Changed to ticket-based
+    tickets: [
+      mockTickets['1'], // Martha Stewart & Emerill Lagasse (Extremely Buttery)
+      mockTickets['2'], // Joaquin Phoenix & Ariana Grande (Vegan Imperium)
+      mockTickets['3'], // Ziz LaSota & Emma Borhanian (Zizians)
     ],
   },
   '2': {
@@ -226,11 +226,11 @@ export const mockContests: Record<string, Contest> = {
     jurisdictionId: '3',
     name: 'Chief Sycophant of the United States',
     isPartisan: true,
-    isTicketBased: false,
-    candidates: [
-      mockCandidates['2'], // Emerill Lagasse (Chief Sycophant position)
-      mockCandidates['4'], // Ariana Grande (Chief Sycophant position)
-      mockCandidates['6'], // Emma Borhanian (Chief Sycophant position)
+    isTicketBased: true, // Changed to ticket-based
+    tickets: [
+      mockTickets['1'], // Martha Stewart & Emerill Lagasse (Extremely Buttery)
+      mockTickets['2'], // Joaquin Phoenix & Ariana Grande (Vegan Imperium)
+      mockTickets['3'], // Ziz LaSota & Emma Borhanian (Zizians)
     ],
   },
   '3': {
@@ -357,19 +357,19 @@ export const mockContestResults: Record<string, ContestResult> = {
     totalVotes: 158000000,
     results: [
       {
-        candidateId: '1', // Martha Stewart (God-Emperor)
+        ticketId: '1', // Martha Stewart & Emerill Lagasse (Extremely Buttery)
         votes: 117236000,
         percentage: 74.2,
         winner: true,
       },
       {
-        candidateId: '3', // Joaquin Phoenix (God-Emperor)
+        ticketId: '2', // Joaquin Phoenix & Ariana Grande (Vegan Imperium)
         votes: 33496000,
         percentage: 21.2,
         winner: false,
       },
       {
-        candidateId: '5', // Ziz LaSota (God-Emperor)
+        ticketId: '3', // Ziz LaSota & Emma Borhanian (Zizians)
         votes: 7268000,
         percentage: 4.6,
         winner: false,
@@ -381,20 +381,20 @@ export const mockContestResults: Record<string, ContestResult> = {
     totalVotes: 158000000,
     results: [
       {
-        candidateId: '2', // Emerill Lagasse (Chief Sycophant)
-        votes: 119158000,
-        percentage: 75.4,
+        ticketId: '1', // Martha Stewart & Emerill Lagasse (Extremely Buttery)
+        votes: 117236000,
+        percentage: 74.2,
         winner: true,
       },
       {
-        candidateId: '4', // Ariana Grande (Chief Sycophant)
-        votes: 31600000,
-        percentage: 20.0,
+        ticketId: '2', // Joaquin Phoenix & Ariana Grande (Vegan Imperium)
+        votes: 33496000,
+        percentage: 21.2,
         winner: false,
       },
       {
-        candidateId: '6', // Emma Borhanian (Chief Sycophant)
-        votes: 7242000,
+        ticketId: '3', // Ziz LaSota & Emma Borhanian (Zizians)
+        votes: 7268000,
         percentage: 4.6,
         winner: false,
       },
