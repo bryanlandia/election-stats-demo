@@ -15,7 +15,7 @@ import {
   QuestionType,
   Ticket,
 } from '@/types';
-import { formatDate } from '@/utils';
+import { BALLOT_QUESTION_COLORS, formatDate } from '@/utils';
 import {
   FilterList as FilterListIcon,
   InfoOutlined as InfoIcon,
@@ -1617,8 +1617,8 @@ export default function HomePage() {
                                           ) => {
                                             // Yes gets desaturated green, No gets desaturated red
                                             return index === 0
-                                              ? '#6b9b6b' // Desaturated green (was #4caf50)
-                                              : '#c66b6b'; // Desaturated red (was #f44336)
+                                              ? BALLOT_QUESTION_COLORS.YES
+                                              : BALLOT_QUESTION_COLORS.NO;
                                           };
 
                                           return (

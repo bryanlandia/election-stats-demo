@@ -1,4 +1,5 @@
 import { Candidate, ContestResult, Party, Ticket } from '@/types';
+import { NON_PARTISAN_COLORS } from '@/utils';
 import { Box, Paper } from '@mui/material';
 import React from 'react';
 
@@ -152,14 +153,10 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
 
             if (isNonPartisan) {
               // Non-partisan contest - use shades of gray
-              const grayShades = [
-                '#666666', // Dark gray for winner
-                '#808080', // Medium gray
-                '#999999', // Light gray
-                '#b3b3b3', // Lighter gray
-                '#cccccc', // Very light gray
-              ];
-              color = grayShades[Math.min(index, grayShades.length - 1)];
+              color =
+                NON_PARTISAN_COLORS[
+                  Math.min(index, NON_PARTISAN_COLORS.length - 1)
+                ];
               isDarkColor = index <= 1; // First two shades are dark
             } else if (isPrimaryContest) {
               const isWinner = result.winner;
