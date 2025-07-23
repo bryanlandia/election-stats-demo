@@ -60,7 +60,7 @@ export const mockParties: Record<string, Party> = {
   },
   '3': {
     id: '3',
-    name: 'Zizians',
+    name: 'Nabisco',
     color: '#000000', // black
   },
 };
@@ -166,10 +166,10 @@ export const mockCandidates: Record<string, Candidate> = {
     partyId: '2',
     position: 'Chief Sycophant',
   },
-  '5': { id: '5', name: 'Ziz LaSota', partyId: '3', position: 'God-Emperor' },
+  '5': { id: '5', name: "Cap'n Crunch", partyId: '3', position: 'God-Emperor' },
   '6': {
     id: '6',
-    name: 'Emma Borhanian',
+    name: 'Keebler Elf',
     partyId: '3',
     position: 'Chief Sycophant',
   },
@@ -217,7 +217,7 @@ export const mockContests: Record<string, Contest> = {
     tickets: [
       mockTickets['1'], // Martha Stewart & Emerill Lagasse (Extremely Buttery)
       mockTickets['2'], // Joaquin Phoenix & Ariana Grande (Vegan Imperium)
-      mockTickets['3'], // Ziz LaSota & Emma Borhanian (Zizians)
+      mockTickets['3'], // Cap'n Crunch & Keebler Elf (Nabisco)
     ],
   },
   '2': {
@@ -230,7 +230,7 @@ export const mockContests: Record<string, Contest> = {
     tickets: [
       mockTickets['1'], // Martha Stewart & Emerill Lagasse (Extremely Buttery)
       mockTickets['2'], // Joaquin Phoenix & Ariana Grande (Vegan Imperium)
-      mockTickets['3'], // Ziz LaSota & Emma Borhanian (Zizians)
+      mockTickets['3'], // Cap'n Crunch & Keebler Elf (Nabisco)
     ],
   },
   '3': {
@@ -369,7 +369,7 @@ export const mockContestResults: Record<string, ContestResult> = {
         winner: false,
       },
       {
-        ticketId: '3', // Ziz LaSota & Emma Borhanian (Zizians)
+        ticketId: '3', // Cap'n Crunch & Keebler Elf (Nabisco)
         votes: 7268000,
         percentage: 4.6,
         winner: false,
@@ -393,7 +393,7 @@ export const mockContestResults: Record<string, ContestResult> = {
         winner: false,
       },
       {
-        ticketId: '3', // Ziz LaSota & Emma Borhanian (Zizians)
+        ticketId: '3', // Cap'n Crunch & Keebler Elf (Nabisco)
         votes: 7268000,
         percentage: 4.6,
         winner: false,
