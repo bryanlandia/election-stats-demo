@@ -1,5 +1,5 @@
 export function formatNumber(num: number): string {
-  return new Intl.NumberFormat('en-US').format(num);
+  return num.toLocaleString();
 }
 
 export function formatPercentage(num: number): string {

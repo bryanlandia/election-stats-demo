@@ -16,7 +16,7 @@ import {
   QuestionType,
   Ticket,
 } from '@/types';
-import { formatDate, NON_PARTISAN_COLORS } from '@/utils';
+import { formatDate, formatNumber, NON_PARTISAN_COLORS } from '@/utils';
 import { FilterList as FilterListIcon } from '@mui/icons-material';
 import {
   Alert,
@@ -76,17 +76,16 @@ export default function HomePage() {
   const [selectedJurisdiction, setSelectedJurisdiction] = useState<string>('');
   const [selectedQuestionType, setSelectedQuestionType] = useState<string>('');
 
-  // Office header toggle state for each contest
+  // Office header toggle state
   const [officeHeaderExpanded, setOfficeHeaderExpanded] = useState<
     Record<string, boolean>
   >({});
 
-  // Ballot question extended text toggle state
+  // Ballot question info toggle state
   const [ballotQuestionExpanded, setBallotQuestionExpanded] = useState<
     Record<string, boolean>
   >({});
 
-  // Function to toggle office header
   const toggleOfficeHeader = (contestId: string) => {
     setOfficeHeaderExpanded((prev) => ({
       ...prev,
@@ -94,7 +93,6 @@ export default function HomePage() {
     }));
   };
 
-  // Function to toggle ballot question extended text
   const toggleBallotQuestion = (questionId: string) => {
     setBallotQuestionExpanded((prev) => ({
       ...prev,
@@ -152,42 +150,34 @@ export default function HomePage() {
           data: [],
         };
 
-        // Handle contests response (might not exist for all elections)
         if (contestsResponse.ok) {
           contestsData = await contestsResponse.json();
         }
 
-        // Handle ballot questions response (might not exist for all elections)
         if (ballotQuestionsResponse.ok) {
           ballotQuestionsData = await ballotQuestionsResponse.json();
         }
 
-        // Handle offices response
         if (officesResponse.ok) {
           officesData = await officesResponse.json();
         }
 
-        // Handle jurisdictions response
         if (jurisdictionsResponse.ok) {
           jurisdictionsData = await jurisdictionsResponse.json();
         }
 
-        // Handle candidates response
         if (candidatesResponse.ok) {
           candidatesData = await candidatesResponse.json();
         }
 
-        // Handle parties response
         if (partiesResponse.ok) {
           partiesData = await partiesResponse.json();
         }
 
-        // Handle tickets response
         if (ticketsResponse.ok) {
           ticketsData = await ticketsResponse.json();
         }
 
-        // Handle question types response
         let questionTypesData: ApiResponse<QuestionType[]> = {
           success: true,
           data: [],
@@ -209,7 +199,7 @@ export default function HomePage() {
           setParties(partiesData.data || []);
           setTickets(ticketsData.data || []);
 
-          // Set year range based on available elections
+          // Year range from avail elections
           const years = electionsData.data.map((e) =>
             new Date(e.date).getFullYear()
           );
@@ -217,7 +207,7 @@ export default function HomePage() {
           const maxYear = Math.max(...years);
           setYearRange([minYear, maxYear]);
 
-          // Fetch election results
+          // Now get the results for the elections
           await fetchElectionResults(electionsData.data);
         } else {
           setError(electionsData.message || 'Failed to fetch elections');
@@ -232,7 +222,7 @@ export default function HomePage() {
     fetchData();
   }, []);
 
-  // Fetch election results for given elections
+  // Get results for the election we want
   const fetchElectionResults = async (elections: Election[]) => {
     const resultsPromises = elections.map(async (election) => {
       try {
@@ -262,9 +252,9 @@ export default function HomePage() {
     });
 
     setElectionResults(resultsMap);
-  }; // Apply contest search filters in addition to main filters
+  };
+
   useEffect(() => {
-    // Start with contests filtered by main filters (year/election)
     let baseFiltered = contests;
 
     if (searchMode === 'year') {
@@ -286,11 +276,10 @@ export default function HomePage() {
 
     // Only apply additional filters if contest search is enabled
     if (contestSearchEnabled) {
-      // Filter by selected office
+      // by office filter
       if (selectedOffice) {
         const office = offices.find((o) => o.id === selectedOffice);
         if (office) {
-          // Find elections for this office
           const electionsForOffice = elections.filter(
             (e) => e.officeId === selectedOffice
           );
@@ -299,17 +288,17 @@ export default function HomePage() {
         }
       }
 
-      // Filter by candidate search
+      // by candidate filter
       if (candidateSearch.trim()) {
         const searchTerm = candidateSearch.toLowerCase().trim();
         filtered = filtered.filter((contest) => {
-          // Search in single candidates
+          // single canddidates
           if (contest.candidates) {
             return contest.candidates.some((candidate) =>
               candidate.name.toLowerCase().includes(searchTerm)
             );
           }
-          // Search in ticket candidates
+          // tickets
           if (contest.tickets) {
             return contest.tickets.some((ticket) =>
               ticket.candidates.some((candidate) =>
@@ -335,15 +324,14 @@ export default function HomePage() {
     elections,
   ]);
 
-  // Apply ballot question search filters in addition to main filters
+  // add the ballot question search filters if set
   useEffect(() => {
     if (!ballotQuestionSearchEnabled) {
-      return; // Use the main filtering results
+      return;
     }
 
-    let filtered = ballotQuestions; // Start with all ballot questions
+    let filtered = ballotQuestions;
 
-    // Apply year range or election filter first
     if (searchMode === 'year') {
       const electionsInRange = elections.filter((election) => {
         const year = new Date(election.date).getFullYear();
@@ -359,14 +347,12 @@ export default function HomePage() {
       );
     }
 
-    // Filter by selected jurisdiction
     if (selectedJurisdiction) {
       filtered = filtered.filter(
         (question) => question.jurisdictionId === selectedJurisdiction
       );
     }
 
-    // Filter by selected question type
     if (selectedQuestionType) {
       filtered = filtered.filter(
         (question) => question.questionTypeId === selectedQuestionType
@@ -386,10 +372,6 @@ export default function HomePage() {
   ]);
 
   // Helper functions for chart rendering
-  const formatNumber = (num: number): string => {
-    return num.toLocaleString();
-  };
-
   const getColorForResult = (index: number, party?: Party): string => {
     if (party?.color) {
       return party.color;

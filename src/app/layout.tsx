@@ -6,8 +6,8 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: 'Election Stats',
-  description: '',
-  authors: [{ name: 'Your Name' }],
+  description: 'Election stats for state of new crmpshire',
+  authors: [{ name: 'Bryan Wilson' }],
   viewport: 'width=device-width, initial-scale=1',
 };
 
