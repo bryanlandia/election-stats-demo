@@ -1,12 +1,13 @@
 'use client';
 
-import HorizontalBarChart from '@/components/HorizontalBarChart';
+import BallotQuestionResultComponent from '@/components/BallotQuestionResult';
+import ContestResultComponent from '@/components/ContestResult';
+import GroupedContestResultComponent from '@/components/GroupedContestResult';
 import {
   ApiResponse,
   BallotQuestion,
   Candidate,
   Contest,
-  ContestResult,
   Election,
   ElectionResult,
   Jurisdiction,
@@ -15,27 +16,17 @@ import {
   QuestionType,
   Ticket,
 } from '@/types';
-import {
-  BALLOT_QUESTION_COLORS,
-  formatDate,
-  NON_PARTISAN_COLORS,
-} from '@/utils';
-import {
-  FilterList as FilterListIcon,
-  InfoOutlined as InfoIcon,
-} from '@mui/icons-material';
+import { formatDate, NON_PARTISAN_COLORS } from '@/utils';
+import { FilterList as FilterListIcon } from '@mui/icons-material';
 import {
   Alert,
   Box,
-  Card,
-  CardContent,
   Chip,
   CircularProgress,
   Container,
   Divider,
   FormControl,
   FormControlLabel,
-  IconButton,
   InputLabel,
   MenuItem,
   OutlinedInput,
@@ -994,7 +985,7 @@ export default function HomePage() {
                             return groupedResults;
                           })().map((groupedResult) => {
                             if (groupedResult.type === 'contestGroup') {
-                              // Render grouped ticket-based contests as a single card
+                              // Render grouped ticket-based contests using GroupedContestResultComponent
                               const contests = groupedResult.items.map(
                                 (item) => item.item as Contest
                               );
@@ -1050,196 +1041,33 @@ export default function HomePage() {
                               );
 
                               return (
-                                <Grid
-                                  size={{ xs: 12, md: 6, xl: 4 }}
+                                <GroupedContestResultComponent
                                   key={groupedResult.groupKey}
-                                >
-                                  <Card
-                                    sx={{
-                                      height: '100%',
-                                      display: 'flex',
-                                      flexDirection: 'column',
-                                    }}
-                                  >
-                                    <CardContent sx={{ flexGrow: 1 }}>
-                                      {/* Election info above title */}
-                                      <Typography
-                                        variant="caption"
-                                        color="text.secondary"
-                                        sx={{ mb: 1, display: 'block' }}
-                                      >
-                                        {primaryElection?.name?.replace(
-                                          / - (God-Emperor|Chief Sycophant)/,
-                                          ''
-                                        )}{' '}
-                                        •{' '}
-                                        {primaryElection?.date &&
-                                          formatDate(primaryElection.date)}
-                                        • Presidential Election
-                                      </Typography>
-
-                                      {/* Contest title - show combined title */}
-                                      <Box
-                                        sx={{
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          justifyContent: 'space-between',
-                                          mb: 1,
-                                        }}
-                                      >
-                                        <Typography
-                                          variant="h6"
-                                          component="h4"
-                                          sx={{ flex: 1 }}
-                                        >
-                                          God-Emperor and Chief Sycophant
-                                        </Typography>
-
-                                        {/* Info toggle for offices */}
-                                        <IconButton
-                                          size="small"
-                                          onClick={() =>
-                                            toggleOfficeHeader(
-                                              `group-${groupedResult.groupKey}`
-                                            )
-                                          }
-                                          sx={{
-                                            color: 'primary.main',
-                                            p: 0.5,
-                                          }}
-                                        >
-                                          <InfoIcon fontSize="small" />
-                                        </IconButton>
-                                      </Box>
-
-                                      {/* Toggleable Office Headers */}
-                                      {officeHeaderExpanded[
-                                        `group-${groupedResult.groupKey}`
-                                      ] && (
-                                        <Box
-                                          sx={{
-                                            mb: 2,
-                                            p: 1.5,
-                                            bgcolor: '#f5f5f5',
-                                            borderRadius: 1,
-                                          }}
-                                        >
-                                          {contests.map((contest, index) => {
-                                            const office = groupOffices.find(
-                                              (o) =>
-                                                o.id ===
-                                                elections[index]?.officeId
-                                            );
-                                            if (!office) return null;
-
-                                            return (
-                                              <Box
-                                                key={contest.id}
-                                                sx={{
-                                                  mb:
-                                                    index < contests.length - 1
-                                                      ? 2
-                                                      : 0,
-                                                }}
-                                              >
-                                                <Typography
-                                                  variant="subtitle1"
-                                                  color="primary"
-                                                  gutterBottom
-                                                  sx={{ mb: 1 }}
-                                                >
-                                                  {office.name}
-                                                </Typography>
-                                                <Typography
-                                                  variant="body2"
-                                                  color="text.secondary"
-                                                  sx={{ mb: 1.5 }}
-                                                >
-                                                  {office.description}
-                                                </Typography>
-                                                <Box
-                                                  sx={{
-                                                    display: 'flex',
-                                                    gap: 0.5,
-                                                    flexWrap: 'wrap',
-                                                  }}
-                                                >
-                                                  <Chip
-                                                    label={
-                                                      office.isElected
-                                                        ? 'Elected Position'
-                                                        : 'Appointed Position'
-                                                    }
-                                                    color="primary"
-                                                    variant="outlined"
-                                                    size="small"
-                                                  />
-                                                  {office.termLength && (
-                                                    <Chip
-                                                      label={`${office.termLength} year term`}
-                                                      color="secondary"
-                                                      variant="outlined"
-                                                      size="small"
-                                                    />
-                                                  )}
-                                                  {office.maxTerms && (
-                                                    <Chip
-                                                      label={`Max ${office.maxTerms} terms`}
-                                                      color="default"
-                                                      variant="outlined"
-                                                      size="small"
-                                                    />
-                                                  )}
-                                                </Box>
-                                              </Box>
-                                            );
-                                          })}
-                                        </Box>
-                                      )}
-
-                                      <Typography
-                                        variant="body2"
-                                        color="text.secondary"
-                                        sx={{ mb: 2 }}
-                                      >
-                                        {jurisdiction?.name || 'Unknown'} —
-                                        Partisan Ticket
-                                      </Typography>
-
-                                      {/* Horizontal Bar Chart */}
-                                      {contestResult ? (
-                                        <HorizontalBarChart
-                                          contestResult={contestResult}
-                                          parties={partiesLookup}
-                                          candidates={candidatesLookup}
-                                          tickets={ticketsLookup}
-                                          getColorForResult={getColorForResult}
-                                          formatNumber={formatNumber}
-                                        />
-                                      ) : (
-                                        <Box
-                                          sx={{
-                                            p: 3,
-                                            textAlign: 'center',
-                                            bgcolor: '#f5f5f5',
-                                            borderRadius: 1,
-                                          }}
-                                        >
-                                          <Typography
-                                            variant="body2"
-                                            color="text.secondary"
-                                          >
-                                            No results data available for this
-                                            contest
-                                          </Typography>
-                                        </Box>
-                                      )}
-                                    </CardContent>
-                                  </Card>
-                                </Grid>
+                                  contests={contests}
+                                  elections={elections}
+                                  groupOffices={groupOffices}
+                                  jurisdiction={jurisdiction}
+                                  contestResult={contestResult}
+                                  isExpanded={
+                                    officeHeaderExpanded[
+                                      `group-${groupedResult.groupKey}`
+                                    ] || false
+                                  }
+                                  onToggleExpanded={() =>
+                                    toggleOfficeHeader(
+                                      `group-${groupedResult.groupKey}`
+                                    )
+                                  }
+                                  parties={partiesLookup}
+                                  candidates={candidatesLookup}
+                                  tickets={ticketsLookup}
+                                  getColorForResult={getColorForResult}
+                                  formatNumber={formatNumber}
+                                  groupKey={groupedResult.groupKey}
+                                />
                               );
                             } else if (groupedResult.type === 'contest') {
-                              // Render single contest
+                              // Render single contest using ContestResultComponent
                               const result = groupedResult.items[0];
                               const contest = result.item as Contest;
                               const election = result.election!;
@@ -1283,172 +1111,28 @@ export default function HomePage() {
                               );
 
                               return (
-                                <Grid
-                                  size={{ xs: 12, md: 6, xl: 4 }}
+                                <ContestResultComponent
                                   key={`contest-${contest.id}`}
-                                >
-                                  <Card
-                                    sx={{
-                                      height: '100%',
-                                      display: 'flex',
-                                      flexDirection: 'column',
-                                    }}
-                                  >
-                                    <CardContent sx={{ flexGrow: 1 }}>
-                                      {/* Election info above title */}
-                                      <Typography
-                                        variant="caption"
-                                        color="text.secondary"
-                                        sx={{ mb: 1, display: 'block' }}
-                                      >
-                                        {election?.name} •{' '}
-                                        {election?.date &&
-                                          formatDate(election.date)}
-                                        {office && ` • ${office.name}`}
-                                      </Typography>
-
-                                      {/* Contest title with info toggle */}
-                                      <Box
-                                        sx={{
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          justifyContent: 'space-between',
-                                          mb: 1,
-                                        }}
-                                      >
-                                        <Typography
-                                          variant="h6"
-                                          component="h4"
-                                          sx={{ flex: 1 }}
-                                        >
-                                          {contest.name}
-                                        </Typography>
-
-                                        {/* Compact Office Header Toggle */}
-                                        {office && (
-                                          <IconButton
-                                            size="small"
-                                            onClick={() =>
-                                              toggleOfficeHeader(contest.id)
-                                            }
-                                            sx={{
-                                              color: 'primary.main',
-                                              p: 0.5,
-                                            }}
-                                          >
-                                            <InfoIcon fontSize="small" />
-                                          </IconButton>
-                                        )}
-                                      </Box>
-
-                                      {/* Toggleable Office Header */}
-                                      {office &&
-                                        officeHeaderExpanded[contest.id] && (
-                                          <Box
-                                            sx={{
-                                              mb: 2,
-                                              p: 1.5,
-                                              bgcolor: '#f5f5f5',
-                                              borderRadius: 1,
-                                            }}
-                                          >
-                                            <Typography
-                                              variant="h6"
-                                              color="primary"
-                                              gutterBottom
-                                              sx={{ mb: 1 }}
-                                            >
-                                              Office: {office.name}
-                                            </Typography>
-                                            <Typography
-                                              variant="body2"
-                                              color="text.secondary"
-                                              sx={{ mb: 1.5 }}
-                                            >
-                                              {office.description}
-                                            </Typography>
-                                            <Box
-                                              sx={{
-                                                display: 'flex',
-                                                gap: 0.5,
-                                                flexWrap: 'wrap',
-                                              }}
-                                            >
-                                              <Chip
-                                                label={
-                                                  office.isElected
-                                                    ? 'Elected Position'
-                                                    : 'Appointed Position'
-                                                }
-                                                color="primary"
-                                                variant="outlined"
-                                                size="small"
-                                              />
-                                              {office.termLength && (
-                                                <Chip
-                                                  label={`${office.termLength} year term`}
-                                                  color="secondary"
-                                                  variant="outlined"
-                                                  size="small"
-                                                />
-                                              )}
-                                              {office.maxTerms && (
-                                                <Chip
-                                                  label={`Max ${office.maxTerms} terms`}
-                                                  color="default"
-                                                  variant="outlined"
-                                                  size="small"
-                                                />
-                                              )}
-                                            </Box>
-                                          </Box>
-                                        )}
-
-                                      <Typography
-                                        variant="body2"
-                                        color="text.secondary"
-                                        sx={{ mb: 2 }}
-                                      >
-                                        {jurisdiction?.name || 'Unknown'} —{' '}
-                                        {contest.isPartisan
-                                          ? 'Partisan'
-                                          : 'Non-partisan'}
-                                      </Typography>
-
-                                      {/* Horizontal Bar Chart */}
-                                      {contestResult ? (
-                                        <HorizontalBarChart
-                                          contestResult={contestResult}
-                                          parties={partiesLookup}
-                                          candidates={candidatesLookup}
-                                          tickets={ticketsLookup}
-                                          getColorForResult={getColorForResult}
-                                          formatNumber={formatNumber}
-                                        />
-                                      ) : (
-                                        <Box
-                                          sx={{
-                                            p: 3,
-                                            textAlign: 'center',
-                                            bgcolor: '#f5f5f5',
-                                            borderRadius: 1,
-                                          }}
-                                        >
-                                          <Typography
-                                            variant="body2"
-                                            color="text.secondary"
-                                          >
-                                            No results data available for this
-                                            contest
-                                          </Typography>
-                                        </Box>
-                                      )}
-                                    </CardContent>
-                                  </Card>
-                                </Grid>
+                                  contest={contest}
+                                  election={election}
+                                  office={office}
+                                  jurisdiction={jurisdiction}
+                                  contestResult={contestResult}
+                                  isExpanded={
+                                    officeHeaderExpanded[contest.id] || false
+                                  }
+                                  onToggleExpanded={() =>
+                                    toggleOfficeHeader(contest.id)
+                                  }
+                                  parties={partiesLookup}
+                                  candidates={candidatesLookup}
+                                  tickets={ticketsLookup}
+                                  getColorForResult={getColorForResult}
+                                  formatNumber={formatNumber}
+                                />
                               );
                             } else {
-                              // Ballot Question
+                              // Ballot Question using BallotQuestionResultComponent
                               const result = groupedResult.items[0];
                               const question = result.item as BallotQuestion;
                               const election = result.election!;
@@ -1467,189 +1151,21 @@ export default function HomePage() {
                                 );
 
                               return (
-                                <Grid
-                                  size={{ xs: 12, md: 6, xl: 4 }}
+                                <BallotQuestionResultComponent
                                   key={`question-${question.id}`}
-                                >
-                                  <Card
-                                    sx={{
-                                      height: '100%',
-                                      display: 'flex',
-                                      flexDirection: 'column',
-                                    }}
-                                  >
-                                    <CardContent sx={{ flexGrow: 1 }}>
-                                      {/* Election info above title */}
-                                      <Typography
-                                        variant="caption"
-                                        color="text.secondary"
-                                        sx={{ mb: 1, display: 'block' }}
-                                      >
-                                        {election?.name} •{' '}
-                                        {election?.date &&
-                                          formatDate(election.date)}
-                                        {questionType &&
-                                          ` • ${questionType.name}`}
-                                      </Typography>
-
-                                      {/* Question title with info toggle */}
-                                      <Box
-                                        sx={{
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          justifyContent: 'space-between',
-                                          mb: 1,
-                                        }}
-                                      >
-                                        <Typography
-                                          variant="h6"
-                                          component="h4"
-                                          sx={{ flex: 1 }}
-                                        >
-                                          {question.shortTitle}
-                                        </Typography>
-
-                                        {/* Info Toggle for Extended Text */}
-                                        <IconButton
-                                          size="small"
-                                          onClick={() =>
-                                            toggleBallotQuestion(question.id)
-                                          }
-                                          sx={{
-                                            color: 'primary.main',
-                                            p: 0.5,
-                                          }}
-                                        >
-                                          <InfoIcon fontSize="small" />
-                                        </IconButton>
-                                      </Box>
-
-                                      {/* Toggleable Extended Text */}
-                                      {ballotQuestionExpanded[question.id] && (
-                                        <Box
-                                          sx={{
-                                            mb: 2,
-                                            p: 1.5,
-                                            bgcolor: '#f5f5f5',
-                                            borderRadius: 1,
-                                          }}
-                                        >
-                                          <Typography
-                                            variant="body2"
-                                            color="text.secondary"
-                                          >
-                                            {question.extendedText}
-                                          </Typography>
-                                        </Box>
-                                      )}
-
-                                      {/* Always show truncated text when not expanded */}
-                                      {!ballotQuestionExpanded[question.id] && (
-                                        <Typography
-                                          variant="body2"
-                                          color="text.secondary"
-                                          gutterBottom
-                                          sx={{
-                                            display: '-webkit-box',
-                                            WebkitLineClamp: 2,
-                                            WebkitBoxOrient: 'vertical',
-                                            overflow: 'hidden',
-                                            mb: 2,
-                                          }}
-                                        >
-                                          {question.extendedText}
-                                        </Typography>
-                                      )}
-
-                                      <Typography
-                                        variant="body2"
-                                        color="text.secondary"
-                                        sx={{ mb: 2 }}
-                                      >
-                                        {jurisdiction?.name || 'Unknown'} —{' '}
-                                        {question.passed ? 'Passed' : 'Failed'}
-                                      </Typography>
-
-                                      {/* Ballot Question Results Chart */}
-                                      {ballotResult ? (
-                                        (() => {
-                                          // Create a mock ContestResult structure for ballot questions
-                                          const mockContestResult: ContestResult =
-                                            {
-                                              contestId: `ballot-${question.id}`,
-                                              totalVotes:
-                                                ballotResult.yesVotes +
-                                                ballotResult.noVotes,
-                                              results: [
-                                                {
-                                                  candidateId: 'yes',
-                                                  votes: ballotResult.yesVotes,
-                                                  percentage:
-                                                    ballotResult.yesPercentage,
-                                                  winner: ballotResult.passed,
-                                                },
-                                                {
-                                                  candidateId: 'no',
-                                                  votes: ballotResult.noVotes,
-                                                  percentage:
-                                                    ballotResult.noPercentage,
-                                                  winner: !ballotResult.passed,
-                                                },
-                                              ],
-                                            };
-
-                                          // Create mock candidates for Yes and No
-                                          const mockCandidatesForBallot = {
-                                            yes: { id: 'yes', name: 'Yes' },
-                                            no: { id: 'no', name: 'No' },
-                                          };
-
-                                          // Custom color function for ballot questions
-                                          const getBallotQuestionColor = (
-                                            index: number
-                                          ) => {
-                                            // Yes gets desaturated green, No gets desaturated red
-                                            return index === 0
-                                              ? BALLOT_QUESTION_COLORS.YES
-                                              : BALLOT_QUESTION_COLORS.NO;
-                                          };
-
-                                          return (
-                                            <HorizontalBarChart
-                                              contestResult={mockContestResult}
-                                              parties={{}}
-                                              candidates={
-                                                mockCandidatesForBallot
-                                              }
-                                              tickets={{}}
-                                              getColorForResult={
-                                                getBallotQuestionColor
-                                              }
-                                              formatNumber={formatNumber}
-                                            />
-                                          );
-                                        })()
-                                      ) : (
-                                        <Box
-                                          sx={{
-                                            p: 3,
-                                            textAlign: 'center',
-                                            bgcolor: '#f5f5f5',
-                                            borderRadius: 1,
-                                          }}
-                                        >
-                                          <Typography
-                                            variant="body2"
-                                            color="text.secondary"
-                                          >
-                                            No results data available for this
-                                            ballot question
-                                          </Typography>
-                                        </Box>
-                                      )}
-                                    </CardContent>
-                                  </Card>
-                                </Grid>
+                                  question={question}
+                                  election={election}
+                                  jurisdiction={jurisdiction}
+                                  questionType={questionType}
+                                  ballotResult={ballotResult}
+                                  isExpanded={
+                                    ballotQuestionExpanded[question.id] || false
+                                  }
+                                  onToggleExpanded={() =>
+                                    toggleBallotQuestion(question.id)
+                                  }
+                                  formatNumber={formatNumber}
+                                />
                               );
                             }
                           })}
