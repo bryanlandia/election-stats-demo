@@ -91,7 +91,7 @@ export const mockOffices: Record<string, Office> = {
     id: '3',
     name: 'Dogcatcher of Bullton County',
     description:
-      'Responsible for the capture and care of stray dogs within Bullton County limits.',
+      'Mean person who hunts for members of the free wild borkers gang.',
     jurisdictionId: '2', // Bullton County
     isElected: true,
     termLength: 4,

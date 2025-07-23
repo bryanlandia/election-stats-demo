@@ -267,76 +267,64 @@ export default function HomePage() {
     });
 
     setElectionResults(resultsMap);
-  };
-
-  // Filter contests when search mode or filters change
+  }; // Apply contest search filters in addition to main filters
   useEffect(() => {
-    let filteredContests = contests;
+    // Start with contests filtered by main filters (year/election)
+    let baseFiltered = contests;
 
     if (searchMode === 'year') {
-      // Year range filter - filter by election dates
       const electionsInRange = elections.filter((election) => {
         const year = new Date(election.date).getFullYear();
         return year >= yearRange[0] && year <= yearRange[1];
       });
       const electionIds = electionsInRange.map((e) => e.id);
-
-      filteredContests = contests.filter((contest) =>
+      baseFiltered = contests.filter((contest) =>
         electionIds.includes(contest.electionId)
       );
-    } else if (searchMode === 'election') {
-      // Election dates filter
-      if (selectedElection !== 'all') {
-        filteredContests = contests.filter(
-          (contest) => contest.electionId === selectedElection
-        );
-      }
+    } else if (searchMode === 'election' && selectedElection !== 'all') {
+      baseFiltered = contests.filter(
+        (contest) => contest.electionId === selectedElection
+      );
     }
 
-    setFilteredContests(filteredContests);
-  }, [searchMode, yearRange, selectedElection, elections, contests]);
+    let filtered = baseFiltered;
 
-  // Apply contest search filters in addition to main filters
-  useEffect(() => {
-    if (!contestSearchEnabled) {
-      return; // Use the main filtering results
-    }
-
-    let filtered = filteredContests; // Start with already filtered contests
-
-    // Filter by selected office
-    if (selectedOffice) {
-      const office = offices.find((o) => o.id === selectedOffice);
-      if (office) {
-        // Find elections for this office
-        const electionsForOffice = elections.filter(
-          (e) => e.officeId === selectedOffice
-        );
-        const electionIds = electionsForOffice.map((e) => e.id);
-        filtered = filtered.filter((c) => electionIds.includes(c.electionId));
-      }
-    }
-
-    // Filter by candidate search
-    if (candidateSearch.trim()) {
-      const searchTerm = candidateSearch.toLowerCase().trim();
-      filtered = filtered.filter((contest) => {
-        // Search in single candidates
-        if (contest.candidates) {
-          return contest.candidates.some((candidate) =>
-            candidate.name.toLowerCase().includes(searchTerm)
+    // Only apply additional filters if contest search is enabled
+    if (contestSearchEnabled) {
+      // Filter by selected office
+      if (selectedOffice) {
+        const office = offices.find((o) => o.id === selectedOffice);
+        if (office) {
+          // Find elections for this office
+          const electionsForOffice = elections.filter(
+            (e) => e.officeId === selectedOffice
           );
+          const electionIds = electionsForOffice.map((e) => e.id);
+          filtered = filtered.filter((c) => electionIds.includes(c.electionId));
         }
-        // Search in ticket candidates
-        if (contest.tickets) {
-          return contest.tickets.some((ticket) =>
-            ticket.candidates.some((candidate) =>
+      }
+
+      // Filter by candidate search
+      if (candidateSearch.trim()) {
+        const searchTerm = candidateSearch.toLowerCase().trim();
+        filtered = filtered.filter((contest) => {
+          // Search in single candidates
+          if (contest.candidates) {
+            return contest.candidates.some((candidate) =>
               candidate.name.toLowerCase().includes(searchTerm)
-            )
-          );
-        }
-        return false;
-      });
+            );
+          }
+          // Search in ticket candidates
+          if (contest.tickets) {
+            return contest.tickets.some((ticket) =>
+              ticket.candidates.some((candidate) =>
+                candidate.name.toLowerCase().includes(searchTerm)
+              )
+            );
+          }
+          return false;
+        });
+      }
     }
 
     setFilteredContests(filtered);
@@ -344,7 +332,10 @@ export default function HomePage() {
     contestSearchEnabled,
     selectedOffice,
     candidateSearch,
-    filteredContests,
+    searchMode,
+    yearRange,
+    selectedElection,
+    contests,
     offices,
     elections,
   ]);
