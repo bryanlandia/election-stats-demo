@@ -15,7 +15,11 @@ import {
   QuestionType,
   Ticket,
 } from '@/types';
-import { BALLOT_QUESTION_COLORS, formatDate } from '@/utils';
+import {
+  BALLOT_QUESTION_COLORS,
+  formatDate,
+  NON_PARTISAN_COLORS,
+} from '@/utils';
 import {
   FilterList as FilterListIcon,
   InfoOutlined as InfoIcon,
@@ -396,21 +400,10 @@ export default function HomePage() {
   };
 
   const getColorForResult = (index: number, party?: Party): string => {
-    if (party) {
-      return party.color || getDefaultColor(index);
+    if (party?.color) {
+      return party.color;
     }
-    return getDefaultColor(index);
-  };
-
-  const getDefaultColor = (index: number): string => {
-    const defaultColors = [
-      '#1976d2',
-      '#dc004e',
-      '#388e3c',
-      '#f57c00',
-      '#7b1fa2',
-    ];
-    return defaultColors[index % defaultColors.length];
+    return NON_PARTISAN_COLORS[0];
   };
 
   const handleTabChange = (mode: 'year' | 'election') => {
