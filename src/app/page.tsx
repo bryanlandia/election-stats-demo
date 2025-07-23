@@ -18,7 +18,6 @@ import {
 import {
   FilterList as FilterListIcon,
   InfoOutlined as InfoIcon,
-  Search as SearchIcon,
 } from '@mui/icons-material';
 import {
   Alert,
@@ -591,13 +590,13 @@ export default function HomePage() {
         <Grid size={{ xs: 12, md: 3 }}>
           <Paper sx={{ p: 3, position: 'sticky', top: 20 }}>
             <Typography
-              variant="h5"
+              variant="h4"
               component="h2"
               gutterBottom
               sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}
             >
-              <SearchIcon />
-              Search By
+              {/* <SearchIcon /> */}
+              Search Past Elections
             </Typography>
 
             {/* Search Mode Toggle */}
@@ -906,7 +905,7 @@ export default function HomePage() {
                     return (
                       <>
                         <Typography
-                          variant="h4"
+                          variant="h5"
                           component="h2"
                           gutterBottom
                           sx={{ mb: 3 }}
@@ -921,8 +920,368 @@ export default function HomePage() {
                         </Typography>
 
                         <Grid container spacing={3}>
-                          {combinedResults.map((result) => {
-                            if (result.type === 'contest') {
+                          {(() => {
+                            // Group ticket-based contests that share the same tickets and date
+                            const groupedResults: Array<{
+                              type:
+                                | 'contest'
+                                | 'ballotQuestion'
+                                | 'contestGroup';
+                              items: typeof combinedResults;
+                              groupKey?: string;
+                            }> = [];
+
+                            const processedContestIds = new Set<string>();
+
+                            combinedResults.forEach((result) => {
+                              if (result.type === 'contest') {
+                                const contest = result.item as Contest;
+
+                                // Skip if already processed
+                                if (processedContestIds.has(contest.id)) {
+                                  return;
+                                }
+
+                                // Check if this is a ticket-based contest
+                                if (contest.isTicketBased && contest.tickets) {
+                                  // Find other ticket-based contests with same tickets and date
+                                  const relatedContests =
+                                    combinedResults.filter((r) => {
+                                      if (r.type !== 'contest') return false;
+                                      const otherContest = r.item as Contest;
+                                      if (otherContest.id === contest.id)
+                                        return true;
+                                      if (
+                                        !otherContest.isTicketBased ||
+                                        !otherContest.tickets
+                                      )
+                                        return false;
+
+                                      // Check if they share the same tickets and election date
+                                      const sameTickets =
+                                        contest.tickets?.every((ticket) =>
+                                          otherContest.tickets?.some(
+                                            (otherTicket) =>
+                                              otherTicket.id === ticket.id
+                                          )
+                                        ) &&
+                                        otherContest.tickets?.every((ticket) =>
+                                          contest.tickets?.some(
+                                            (contestTicket) =>
+                                              contestTicket.id === ticket.id
+                                          )
+                                        );
+
+                                      const sameDate =
+                                        result.election?.date ===
+                                        r.election?.date;
+
+                                      return sameTickets && sameDate;
+                                    });
+
+                                  // Mark all related contests as processed
+                                  relatedContests.forEach((r) => {
+                                    const c = r.item as Contest;
+                                    processedContestIds.add(c.id);
+                                  });
+
+                                  // If more than one contest, group them
+                                  if (relatedContests.length > 1) {
+                                    const groupKey = `ticket-group-${contest.electionId}-${contest.jurisdictionId}`;
+                                    groupedResults.push({
+                                      type: 'contestGroup',
+                                      items: relatedContests,
+                                      groupKey,
+                                    });
+                                  } else {
+                                    // Single ticket-based contest
+                                    groupedResults.push({
+                                      type: 'contest',
+                                      items: [result],
+                                    });
+                                  }
+                                } else {
+                                  // Non-ticket-based contest
+                                  processedContestIds.add(contest.id);
+                                  groupedResults.push({
+                                    type: 'contest',
+                                    items: [result],
+                                  });
+                                }
+                              } else {
+                                // Ballot question
+                                groupedResults.push({
+                                  type: 'ballotQuestion',
+                                  items: [result],
+                                });
+                              }
+                            });
+
+                            return groupedResults;
+                          })().map((groupedResult) => {
+                            if (groupedResult.type === 'contestGroup') {
+                              // Render grouped ticket-based contests as a single card
+                              const contests = groupedResult.items.map(
+                                (item) => item.item as Contest
+                              );
+                              const elections = groupedResult.items.map(
+                                (item) => item.election!
+                              );
+                              const primaryElection = elections[0]; // Use first election for shared data
+                              const groupOffices = groupedResult.items
+                                .map((item) =>
+                                  offices.find(
+                                    (o) => o.id === item.election?.officeId
+                                  )
+                                )
+                                .filter(Boolean) as Office[];
+
+                              const jurisdiction = jurisdictions.find(
+                                (j) => j.id === contests[0].jurisdictionId
+                              );
+
+                              // Use the first contest's result for ticket data since they should be identical
+                              const primaryContest = contests[0];
+                              const electionResult = primaryElection
+                                ? electionResults[primaryElection.id]
+                                : null;
+                              const contestResult =
+                                electionResult?.contestResults?.find(
+                                  (cr) => cr.contestId === primaryContest.id
+                                );
+
+                              // Create lookup objects for the chart component
+                              const partiesLookup = parties.reduce(
+                                (acc, party) => {
+                                  acc[party.id] = party;
+                                  return acc;
+                                },
+                                {} as Record<string, Party>
+                              );
+
+                              const candidatesLookup = candidates.reduce(
+                                (acc, candidate) => {
+                                  acc[candidate.id] = candidate;
+                                  return acc;
+                                },
+                                {} as Record<string, Candidate>
+                              );
+
+                              const ticketsLookup = tickets.reduce(
+                                (acc, ticket) => {
+                                  acc[ticket.id] = ticket;
+                                  return acc;
+                                },
+                                {} as Record<string, Ticket>
+                              );
+
+                              return (
+                                <Grid
+                                  size={{ xs: 12, md: 6, xl: 4 }}
+                                  key={groupedResult.groupKey}
+                                >
+                                  <Card
+                                    sx={{
+                                      height: '100%',
+                                      display: 'flex',
+                                      flexDirection: 'column',
+                                    }}
+                                  >
+                                    <CardContent sx={{ flexGrow: 1 }}>
+                                      {/* Election info above title */}
+                                      <Typography
+                                        variant="caption"
+                                        color="text.secondary"
+                                        sx={{ mb: 1, display: 'block' }}
+                                      >
+                                        {primaryElection?.name?.replace(
+                                          / - (God-Emperor|Chief Sycophant)/,
+                                          ''
+                                        )}{' '}
+                                        •{' '}
+                                        {primaryElection?.date &&
+                                          new Date(
+                                            primaryElection.date
+                                          ).toLocaleDateString()}
+                                        • Presidential Election
+                                      </Typography>
+
+                                      {/* Contest title - show combined title */}
+                                      <Box
+                                        sx={{
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'space-between',
+                                          mb: 1,
+                                        }}
+                                      >
+                                        <Typography
+                                          variant="h6"
+                                          component="h4"
+                                          sx={{ flex: 1 }}
+                                        >
+                                          God-Emperor and Chief Sycophant
+                                        </Typography>
+
+                                        {/* Info toggle for offices */}
+                                        <IconButton
+                                          size="small"
+                                          onClick={() =>
+                                            toggleOfficeHeader(
+                                              `group-${groupedResult.groupKey}`
+                                            )
+                                          }
+                                          sx={{
+                                            color: 'primary.main',
+                                            p: 0.5,
+                                          }}
+                                        >
+                                          <InfoIcon fontSize="small" />
+                                        </IconButton>
+                                      </Box>
+
+                                      {/* Toggleable Office Headers */}
+                                      {officeHeaderExpanded[
+                                        `group-${groupedResult.groupKey}`
+                                      ] && (
+                                        <Box
+                                          sx={{
+                                            mb: 2,
+                                            p: 1.5,
+                                            bgcolor: '#f5f5f5',
+                                            borderRadius: 1,
+                                          }}
+                                        >
+                                          {contests.map((contest, index) => {
+                                            const office = groupOffices.find(
+                                              (o) =>
+                                                o.id ===
+                                                elections[index]?.officeId
+                                            );
+                                            if (!office) return null;
+
+                                            return (
+                                              <Box
+                                                key={contest.id}
+                                                sx={{
+                                                  mb:
+                                                    index < contests.length - 1
+                                                      ? 2
+                                                      : 0,
+                                                }}
+                                              >
+                                                <Typography
+                                                  variant="subtitle1"
+                                                  color="primary"
+                                                  gutterBottom
+                                                  sx={{ mb: 1 }}
+                                                >
+                                                  {office.name}
+                                                </Typography>
+                                                <Typography
+                                                  variant="body2"
+                                                  color="text.secondary"
+                                                  sx={{ mb: 1.5 }}
+                                                >
+                                                  {office.description}
+                                                </Typography>
+                                                <Box
+                                                  sx={{
+                                                    display: 'flex',
+                                                    gap: 0.5,
+                                                    flexWrap: 'wrap',
+                                                  }}
+                                                >
+                                                  <Chip
+                                                    label={
+                                                      office.isElected
+                                                        ? 'Elected Position'
+                                                        : 'Appointed Position'
+                                                    }
+                                                    color="primary"
+                                                    variant="outlined"
+                                                    size="small"
+                                                  />
+                                                  {office.termLength && (
+                                                    <Chip
+                                                      label={`${office.termLength} year term`}
+                                                      color="secondary"
+                                                      variant="outlined"
+                                                      size="small"
+                                                    />
+                                                  )}
+                                                  {office.maxTerms && (
+                                                    <Chip
+                                                      label={`Max ${office.maxTerms} terms`}
+                                                      color="default"
+                                                      variant="outlined"
+                                                      size="small"
+                                                    />
+                                                  )}
+                                                </Box>
+                                              </Box>
+                                            );
+                                          })}
+                                        </Box>
+                                      )}
+
+                                      <Box
+                                        sx={{
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          mb: 2,
+                                        }}
+                                      >
+                                        <Chip
+                                          label="Partisan Ticket"
+                                          color="primary"
+                                          size="small"
+                                        />
+                                      </Box>
+
+                                      <Typography
+                                        variant="body2"
+                                        color="text.secondary"
+                                        sx={{ mb: 2 }}
+                                      >
+                                        {jurisdiction?.name || 'Unknown'}
+                                      </Typography>
+
+                                      {/* Horizontal Bar Chart */}
+                                      {contestResult ? (
+                                        <HorizontalBarChart
+                                          contestResult={contestResult}
+                                          parties={partiesLookup}
+                                          candidates={candidatesLookup}
+                                          tickets={ticketsLookup}
+                                          getColorForResult={getColorForResult}
+                                          formatNumber={formatNumber}
+                                        />
+                                      ) : (
+                                        <Box
+                                          sx={{
+                                            p: 3,
+                                            textAlign: 'center',
+                                            bgcolor: '#f5f5f5',
+                                            borderRadius: 1,
+                                          }}
+                                        >
+                                          <Typography
+                                            variant="body2"
+                                            color="text.secondary"
+                                          >
+                                            No results data available for this
+                                            contest
+                                          </Typography>
+                                        </Box>
+                                      )}
+                                    </CardContent>
+                                  </Card>
+                                </Grid>
+                              );
+                            } else if (groupedResult.type === 'contest') {
+                              // Render single contest
+                              const result = groupedResult.items[0];
                               const contest = result.item as Contest;
                               const election = result.election!;
                               const office = offices.find(
@@ -974,12 +1333,6 @@ export default function HomePage() {
                                       height: '100%',
                                       display: 'flex',
                                       flexDirection: 'column',
-                                      transition:
-                                        'transform 0.2s, box-shadow 0.2s',
-                                      '&:hover': {
-                                        transform: 'translateY(-2px)',
-                                        boxShadow: 3,
-                                      },
                                     }}
                                   >
                                     <CardContent sx={{ flexGrow: 1 }}>
@@ -1008,7 +1361,7 @@ export default function HomePage() {
                                       >
                                         <Typography
                                           variant="h6"
-                                          component="h3"
+                                          component="h4"
                                           sx={{ flex: 1 }}
                                         >
                                           {contest.name}
@@ -1158,6 +1511,7 @@ export default function HomePage() {
                               );
                             } else {
                               // Ballot Question
+                              const result = groupedResult.items[0];
                               const question = result.item as BallotQuestion;
                               const election = result.election!;
                               const jurisdiction = jurisdictions.find(
@@ -1184,12 +1538,6 @@ export default function HomePage() {
                                       height: '100%',
                                       display: 'flex',
                                       flexDirection: 'column',
-                                      transition:
-                                        'transform 0.2s, box-shadow 0.2s',
-                                      '&:hover': {
-                                        transform: 'translateY(-2px)',
-                                        boxShadow: 3,
-                                      },
                                     }}
                                   >
                                     <CardContent sx={{ flexGrow: 1 }}>
@@ -1241,7 +1589,7 @@ export default function HomePage() {
                                       >
                                         <Typography
                                           variant="h6"
-                                          component="h3"
+                                          component="h4"
                                           sx={{ flex: 1 }}
                                         >
                                           {question.shortTitle}

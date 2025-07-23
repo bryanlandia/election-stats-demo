@@ -1,5 +1,5 @@
+import { Box, CardContent, Card as MuiCard, Typography } from '@mui/material';
 import React from 'react';
-import { Card as MuiCard, CardContent, Typography, Box } from '@mui/material';
 
 interface CardProps {
   title: string;
@@ -11,7 +11,7 @@ export default function Card({ title, children, className = '' }: CardProps) {
   return (
     <MuiCard sx={{ height: '100%' }} className={className}>
       <CardContent>
-        <Typography variant="h6" component="h3" gutterBottom>
+        <Typography variant="h7" component="h4" gutterBottom>
           {title}
         </Typography>
         <Box>{children}</Box>
