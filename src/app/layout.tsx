@@ -1,5 +1,6 @@
 import Header from '@/components/Header';
 import ThemeProviderWrapper from '@/components/ThemeProviderWrapper';
+import { Analytics } from '@vercel/analytics/next';
 import { Metadata } from 'next';
 import React from 'react';
 import './globals.css';
@@ -23,6 +24,7 @@ export default function RootLayout({
           <Header />
           <main>{children}</main>
         </ThemeProviderWrapper>
+        <Analytics />
       </body>
     </html>
   );
