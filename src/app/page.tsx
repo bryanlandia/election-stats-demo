@@ -526,8 +526,9 @@ export default function HomePage() {
           sx={{
             color: 'text.secondary',
             maxWidth: 600,
-            mx: 'auto'
-          }}>
+            mx: 'auto',
+          }}
+        >
           Election stats
         </Typography>
       </Box>
