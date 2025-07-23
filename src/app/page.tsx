@@ -515,24 +515,6 @@ export default function HomePage() {
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
-      <Box
-        sx={{
-          textAlign: 'center',
-          mb: 6,
-        }}
-      >
-        <Typography
-          variant="h6"
-          sx={{
-            color: 'text.secondary',
-            maxWidth: 600,
-            mx: 'auto',
-          }}
-        >
-          Election stats
-        </Typography>
-      </Box>
-
       {/* Two-Column Layout */}
       <Grid container spacing={4}>
         {/* Left Column - Search Form */}
