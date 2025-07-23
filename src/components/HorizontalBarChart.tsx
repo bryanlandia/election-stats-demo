@@ -138,9 +138,30 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
             const uniqueParties = Array.from(new Set(allPartiesInContest));
             const isPrimaryContest = uniqueParties.length === 1 && party;
 
+            // Check if this is a ballot question (contestId starts with "ballot-")
+            const isBallotQuestion =
+              contestResult.contestId.startsWith('ballot-');
+
+            // Check if this is a non-partisan contest (no candidates have party affiliations)
+            // Only apply gray colors to contests, not ballot questions
+            const isNonPartisan =
+              allPartiesInContest.length === 0 && !isBallotQuestion;
+
             let color: string;
             let isDarkColor = false;
-            if (isPrimaryContest) {
+
+            if (isNonPartisan) {
+              // Non-partisan contest - use shades of gray
+              const grayShades = [
+                '#666666', // Dark gray for winner
+                '#808080', // Medium gray
+                '#999999', // Light gray
+                '#b3b3b3', // Lighter gray
+                '#cccccc', // Very light gray
+              ];
+              color = grayShades[Math.min(index, grayShades.length - 1)];
+              isDarkColor = index <= 1; // First two shades are dark
+            } else if (isPrimaryContest) {
               const isWinner = result.winner;
               if (isWinner) {
                 // Winner gets pure party color

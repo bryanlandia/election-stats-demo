@@ -1615,10 +1615,10 @@ export default function HomePage() {
                                           const getBallotQuestionColor = (
                                             index: number
                                           ) => {
-                                            // Yes gets green, No gets red
+                                            // Yes gets desaturated green, No gets desaturated red
                                             return index === 0
-                                              ? '#4caf50'
-                                              : '#f44336';
+                                              ? '#6b9b6b' // Desaturated green (was #4caf50)
+                                              : '#c66b6b'; // Desaturated red (was #f44336)
                                           };
 
                                           return (
