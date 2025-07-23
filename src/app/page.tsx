@@ -15,6 +15,7 @@ import {
   QuestionType,
   Ticket,
 } from '@/types';
+import { formatDate } from '@/utils';
 import {
   FilterList as FilterListIcon,
   InfoOutlined as InfoIcon,
@@ -472,25 +473,6 @@ export default function HomePage() {
     return contestCount + ballotQuestionCount;
   };
 
-  const formatElectionDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    return `${date.getFullYear()} ${months[date.getMonth()]} ${date.getDate()}`;
-  };
-
   const groupElectionsByYear = (elections: Election[]) => {
     return elections.reduce((groups: Record<string, Election[]>, election) => {
       const year = new Date(election.date).getFullYear().toString();
@@ -675,8 +657,7 @@ export default function HomePage() {
                                 }}
                               >
                                 <Box>
-                                  {formatElectionDate(election.date)} -{' '}
-                                  {election.stage}
+                                  {formatDate(election.date)} - {election.stage}
                                 </Box>
                                 <Chip
                                   label={`${getContestCount(election.id)} contests`}
@@ -1100,9 +1081,7 @@ export default function HomePage() {
                                         )}{' '}
                                         •{' '}
                                         {primaryElection?.date &&
-                                          new Date(
-                                            primaryElection.date
-                                          ).toLocaleDateString()}
+                                          formatDate(primaryElection.date)}
                                         • Presidential Election
                                       </Typography>
 
@@ -1331,9 +1310,7 @@ export default function HomePage() {
                                       >
                                         {election?.name} •{' '}
                                         {election?.date &&
-                                          new Date(
-                                            election.date
-                                          ).toLocaleDateString()}
+                                          formatDate(election.date)}
                                         {office && ` • ${office.name}`}
                                       </Typography>
 
@@ -1517,9 +1494,7 @@ export default function HomePage() {
                                       >
                                         {election?.name} •{' '}
                                         {election?.date &&
-                                          new Date(
-                                            election.date
-                                          ).toLocaleDateString()}
+                                          formatDate(election.date)}
                                         {questionType &&
                                           ` • ${questionType.name}`}
                                       </Typography>
