@@ -7,7 +7,7 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: 'Election Stats',
-  description: 'Election stats for state of new crmpshire',
+  description: 'Election stats for state of New Grampshire',
   authors: [{ name: 'Bryan Wilson' }],
   viewport: 'width=device-width, initial-scale=1',
 };

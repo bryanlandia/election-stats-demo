@@ -16,7 +16,7 @@ import {
 // Tenant Data
 export const mockTenant: Tenant = {
   id: '1',
-  name: 'State of New Crmpshire',
+  name: 'State of New Grampshire',
   jurisdictionId: '1',
 };
 
@@ -24,7 +24,7 @@ export const mockTenant: Tenant = {
 export const mockJurisdictions: Record<string, Jurisdiction> = {
   '1': {
     id: '1',
-    name: 'State of New Crmpshire',
+    name: 'State of New Grampshire',
     registeredVoters: 4297831,
     partisanContestTypes: ['God-Emperor and Chief Sycophant'],
     nonPartisanContestTypes: ['Dogcatcher'],
@@ -121,7 +121,7 @@ export const mockElections: Record<string, Election> = {
   },
   '3': {
     id: '3',
-    name: 'New Crmpshire General Election 2025',
+    name: 'New Grampshire General Election 2025',
     date: '2025-07-19',
     stage: 'General Election',
     jurisdictionId: '1',
@@ -311,9 +311,9 @@ export const mockBallotQuestions: Record<string, BallotQuestion> = {
     jurisdictionId: '1',
     questionTypeId: '1',
     shortTitle:
-      'Shall the State of New Crmpshire elect its legislature via sortition among all eligible registered voters?',
+      'Shall the State of New Grampshire elect its legislature via sortition among all eligible registered voters?',
     extendedText:
-      'The election of the legislature for the State of New Crmpshire shall be done via sortition among all eligible registered voters at the time of each election. The legislature will be comprised of 100 registered voters, chosen randomly, and shall serve for a period of 1 year. Their annual salary shall be $150,000 per annum, with increases recalculated prior to each sortition selection to be done by the Board of Elections, based on the change to average purchasing power in the capital county of Bullton. The very first legislature shall have a session of 2 years. After 1 year, 25% of the legislature shall be replaced. Each subsequent year and election, 25% shall be replaced by another automated sortition.',
+      'The election of the legislature for the State of New Grampshire shall be done via sortition among all eligible registered voters at the time of each election. The legislature will be comprised of 100 registered voters, chosen randomly, and shall serve for a period of 1 year. Their annual salary shall be $150,000 per annum, with increases recalculated prior to each sortition selection to be done by the Board of Elections, based on the change to average purchasing power in the capital county of Bullton. The very first legislature shall have a session of 2 years. After 1 year, 25% of the legislature shall be replaced. Each subsequent year and election, 25% shall be replaced by another automated sortition.',
     passed: true,
     yesVotes: 3059999,
     noVotes: 1237832,
@@ -322,7 +322,7 @@ export const mockBallotQuestions: Record<string, BallotQuestion> = {
   },
   '2': {
     id: '2',
-    electionId: '3', // New Crmpshire General Election (county-level)
+    electionId: '3', // New Grampshire General Election (county-level)
     jurisdictionId: '2', // Bullton County
     questionTypeId: '2', // Bond Issue
     shortTitle: 'Bullton County Infrastructure Bond - $125 Million',

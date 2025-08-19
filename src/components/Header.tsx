@@ -9,9 +9,9 @@ interface HeaderProps {
 }
 
 export default function Header({
-  title = 'State of New Crmpshire Election Stats',
+  title = 'State of New Grampshire Election Stats',
 }: HeaderProps) {
-  const secretaryOfState = 'Matej Grozdanovic';
+  const secretaryOfState = 'Gramps McGramps';
 
   return (
     <AppBar position="static" elevation={0}>
@@ -29,7 +29,7 @@ export default function Header({
                 pl: 0,
               }}
             >
-              {/* New Crmpshire Seal */}
+              {/* New Grampshire Seal */}
               <Box
                 sx={{
                   width: { xs: 48, sm: 56, md: 64 },
@@ -44,7 +44,7 @@ export default function Header({
               >
                 <Image
                   src="/img/seal_of_new_crampshire.jpg"
-                  alt="Seal of New Crmpshire"
+                  alt="Seal of New Grampshire"
                   width={64}
                   height={64}
                   priority
